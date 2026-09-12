@@ -1,4 +1,6 @@
 import React from 'react'
+import logoSvg from '../assets/islington-logo.svg'
+
 import {
     FiGrid,
     FiPenTool,
@@ -29,7 +31,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
         <header className="navbar-container">
             <div className="navbar-logo-section">
                 <img
-                    src="/islington-logo.png"
+                    src={logoSvg}
                     alt="Islington College"
                     className="navbar-logo"
                 />
