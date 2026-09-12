@@ -1,0 +1,370 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #202020;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.login-container {
+  width: 960px;
+  height: 600px;
+  display: flex;
+  background: white;
+  overflow: hidden;
+}
+
+/* =========================
+   LEFT ILLUSTRATION
+========================= */
+
+.login-illustration {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+
+  background: linear-gradient(
+    145deg,
+    #2864cf 0%,
+    #1975c4 45%,
+    #5448e4 100%
+  );
+}
+
+/* SVG curves */
+
+.decorative-lines {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.line {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.line-yellow {
+  stroke: #f4d64c;
+}
+
+.line-green {
+  stroke: #50d1a6;
+}
+
+.line.lower {
+  stroke-width: 4;
+}
+
+/* =========================
+   MOUNTAINS
+========================= */
+
+.mountains {
+  position: absolute;
+  bottom: 92px;
+  left: 0;
+  width: 100%;
+  height: 100px;
+}
+
+.mountain {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 100px solid transparent;
+  border-right: 100px solid transparent;
+  border-bottom: 105px solid #d9ecfa;
+}
+
+.mountain-back {
+  left: 65px;
+  border-left-width: 100px;
+  border-right-width: 100px;
+  border-bottom-color: #e8f4fc;
+}
+
+.mountain-front {
+  left: 170px;
+  bottom: -5px;
+  border-left-width: 85px;
+  border-right-width: 85px;
+  border-bottom-width: 90px;
+  border-bottom-color: #c8e0f3;
+}
+
+/* Snow caps */
+
+.mountains::before {
+  content: "";
+  position: absolute;
+  width: 45px;
+  height: 25px;
+  left: 160px;
+  bottom: 63px;
+  background: white;
+  clip-path: polygon(
+    50% 0,
+    100% 100%,
+    75% 70%,
+    60% 100%,
+    40% 65%,
+    20% 100%,
+    0 100%
+  );
+}
+
+/* =========================
+   HILLS
+========================= */
+
+.hills {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100px;
+}
+
+.hill {
+  position: absolute;
+  bottom: -50px;
+  width: 280px;
+  height: 130px;
+  border-radius: 50% 50% 0 0;
+}
+
+.hill-one {
+  left: -70px;
+  background: #a9dfd1;
+}
+
+.hill-two {
+  right: -65px;
+  background: #8ed4c5;
+}
+
+/* =========================
+   TREE
+========================= */
+
+.tree {
+  position: absolute;
+  bottom: 55px;
+  right: 72px;
+  width: 25px;
+  height: 55px;
+}
+
+.tree-top {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 19px;
+  height: 28px;
+  background: #6ecdb1;
+  border-radius: 50% 50% 45% 45%;
+}
+
+.tree-trunk {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  width: 6px;
+  height: 28px;
+  background: #9cbd91;
+}
+
+/* =========================
+   TEMPLE
+========================= */
+
+.temple {
+  position: absolute;
+  bottom: 58px;
+  right: 20px;
+  width: 70px;
+  height: 85px;
+}
+
+.temple-roof {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  width: 55px;
+  height: 45px;
+  background: #f5d44e;
+  clip-path: polygon(
+    50% 0,
+    100% 70%,
+    72% 70%,
+    88% 100%,
+    12% 100%,
+    28% 70%,
+    0 70%
+  );
+}
+
+.temple-body {
+  position: absolute;
+  left: 17px;
+  top: 42px;
+  width: 37px;
+  height: 30px;
+  background: #f2cf46;
+}
+
+.temple-base {
+  position: absolute;
+  left: 10px;
+  bottom: 0;
+  width: 52px;
+  height: 10px;
+  background: #e7c63f;
+}
+
+/* =========================
+   RIGHT FORM
+========================= */
+
+.login-form-section {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.login-form {
+  width: 300px;
+  margin-top: -5px;
+}
+
+.login-form h1 {
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #151515;
+}
+
+/* Inputs */
+
+.input-group {
+  margin-bottom: 19px;
+}
+
+.input-group input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+
+  border: 1px solid #e6e6e6;
+  border-radius: 2px;
+
+  outline: none;
+  background: #fff;
+
+  font-size: 9px;
+  color: #333;
+}
+
+.input-group input::placeholder {
+  color: #b8c0cc;
+}
+
+.input-group input:focus {
+  border-color: #5c69e8;
+}
+
+/* Forgot password */
+
+.forgot-password {
+  display: block;
+  width: fit-content;
+
+  margin-top: -1px;
+  margin-bottom: 31px;
+
+  color: #7447e8;
+  text-decoration: none;
+
+  font-size: 8px;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Button */
+
+.sign-in-button {
+  width: 63px;
+  height: 28px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: linear-gradient(
+    90deg,
+    #0879c5,
+    #6d43e8
+  );
+
+  color: white;
+  font-size: 8px;
+
+  cursor: pointer;
+}
+
+.sign-in-button:hover {
+  opacity: 0.9;
+}
+
+.sign-in-button:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 800px) {
+  .login-page {
+    padding: 20px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    min-height: 600px;
+  }
+
+  .login-illustration {
+    display: none;
+  }
+
+  .login-form-section {
+    width: 100%;
+    min-height: 600px;
+  }
+
+  .login-form {
+    width: 80%;
+    max-width: 300px;
+  }
+}
