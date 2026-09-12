@@ -7,7 +7,7 @@ const navItemsByRole = {
     ['Chat Rooms', '#'], ['My Time-Table', '#'], ['Help', '#'], ['Admit Card', '/student/admit-card', '▣'],
   ],
   invigilator: [
-    ['Scan', '/invigilator/scan', '▣'], ['Student Info', '/invigilator/student-info', '□'], ['Attendance Record', '/invigilator/attendance-record', '▤'],
+    ['Scan', '/invigilator/scan', '▣'], ['Student Info', '/invigilator/student-info', '□'], ['Attendance Log', '/invigilator/attendance-log', '▤'],
   ],
   admin: [
     ['Student Info', '/admin/student-info', '♙'], ['Attendance Log', '/admin/attendance-log', '▱'],

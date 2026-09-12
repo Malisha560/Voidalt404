@@ -97,6 +97,23 @@ app.patch("/api/admin/students/:id/fee-status", authenticateToken, requireRole("
   }
 });
 
+app.get("/api/invigilator/students", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+  try {
+    const [students] = await pool.query(`
+      SELECT s.id, s.student_id AS studentId, s.name, s.email,
+             s.phone_number AS phoneNumber, s.course, s.year,
+             COALESCE(f.status, 'UNCLEAR') AS feeStatus
+      FROM students s
+      LEFT JOIN fee_status f ON f.student_id = s.id
+      ORDER BY s.name ASC
+    `);
+    return res.json({ students });
+  } catch (error) {
+    console.error("Unable to load invigilator students:", error);
+    return res.status(500).json({ message: "Unable to load student information" });
+  }
+});
+
 app.get("/", (req, res) => {
   res.json({
     message: "Exam Entry System API is running"
@@ -175,6 +192,9 @@ app.get("/api/student/exams/:id/qr", async (req, res) => {
     }
 
     const expiresAt = new Date(startTime.getTime() + (2 * 60 * 60 * 1000));
+    if (Date.now() >= expiresAt.getTime()) {
+      return res.status(410).json({ available: false, expired: true, message: "QR code has expired" });
+    }
     const [[existingToken]] = await pool.query(
       "SELECT token FROM qr_tokens WHERE exam_id = ? AND student_id = ? LIMIT 1",
       [exam.id, studentRecord.id],

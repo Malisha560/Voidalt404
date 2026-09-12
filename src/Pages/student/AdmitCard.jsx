@@ -16,6 +16,7 @@ function QRCodeCard({ examId, studentId }) {
   const [loading, setLoading] = useState(true)
   useEffect(() => { let active = true; fetchExamQr(examId, studentId).then((data) => { if (active) setQr(data) }).catch(() => { if (active) setQr({ available: false, availableAt: 'Unavailable' }) }).finally(() => active && setLoading(false)); return () => { active = false } }, [examId, studentId])
   if (loading) return <div className="qr-card"><div className="qr-loading">Checking QR availability...</div></div>
+  if (!qr?.available && qr?.expired) return <div className="qr-card qr-locked qr-expired"><div className="qr-status-icon">⌑</div><strong>QR CODE EXPIRED</strong><p>This examination QR code is no longer accessible.</p><span>QR access ended 2 hours after the examination started.</span></div>
   if (!qr?.available) return <div className="qr-card qr-locked"><div className="qr-status-icon">⌑</div><strong>QR CODE LOCKED</strong><p>Your examination QR code is not available yet.</p><small>QR code will be available at<br /><b>{qr?.availableAt || '8:00 AM'}</b></small><span>The QR code can be accessed 2 hours before the examination begins.</span></div>
   return <div className="qr-card qr-active"><QRCodeCanvas value={qr.token} size={330} level="M" includeMargin /><ul><li>Candidate must show this QR for entry into the exam hall</li><li>This QR is only valid for its respective examination</li></ul></div>
 }

@@ -11,6 +11,10 @@ export const updateStudentFeeStatus = (studentId, status) => {
   const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
   return api.patch(`/admin/students/${studentId}/fee-status`, { status }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)
 }
+export const fetchInvigilatorStudents = () => {
+  const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
+  return api.get('/invigilator/students', { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data.students)
+}
 
 export const fetchStudentProfile = (studentId = 'ST001') => api.get('/student/profile', { params: { studentId } }).then(({ data }) => data.student)
 export const fetchAdmitCards = (studentId = 'ST001') => api.get('/student/admit-cards', { params: { studentId } }).then(({ data }) => data)
@@ -19,3 +23,8 @@ export const fetchExamQr = (examId, studentId = 'ST001') => api.get(`/student/ex
   if (error.response?.data?.available === false) return error.response.data
   throw error
 })
+
+export const scanQrToken = (token) => {
+  const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
+  return api.post('/invigilator/scan', { token }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)
+}

@@ -1,0 +1,23 @@
+.invigilator-student-page {
+  min-height: calc(100vh - 112px);
+  padding: 35px 42px 50px;
+  background: #fafafa;
+  color: #36363a;
+}
+
+.invigilator-page-heading { margin-bottom: 30px; }
+.invigilator-page-heading h1 { margin: 0 0 7px; color: #454248; font-size: 26px; font-weight: 500; }
+.invigilator-page-heading p:last-child { margin: 0; color: #8d8b90; font-size: 13px; }
+.invigilator-student-page .student-filters { margin-bottom: 30px; }
+.invigilator-student-page .student-table-wrap { max-width: 1200px; }
+.invigilator-fee-status { display: inline-block; min-width: 64px; padding: 6px 10px; border-radius: 14px; text-align: center; font-size: 10px; }
+.invigilator-fee-status.clear { color: #218768; background: #e5f7ef; }
+.invigilator-fee-status.unclear { color: #b86556; background: #fff0eb; }
+
+@media (max-width: 800px) {
+  .invigilator-student-page { padding: 24px 18px; }
+  .invigilator-student-page .student-filters { flex-wrap: wrap; gap: 12px; }
+  .invigilator-student-page .student-filters select { width: calc(50% - 6px); }
+  .invigilator-student-page .student-search { width: 100%; margin-left: 0; }
+  .invigilator-student-page .student-table { min-width: 760px; }
+}

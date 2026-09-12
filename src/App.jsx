@@ -40,10 +40,10 @@ function App() {
 
     <Route path="/invigilator" element={<ProtectedRoute role="INVIGILATOR"><InvigilatorLayout /></ProtectedRoute>}>
       <Route index element={<InvigilatorDashboard />} />
-      <Route path="search" element={<SearchStudent />} />
+      <Route path="student-info" element={<SearchStudent />} />
       <Route path="scan" element={<ScanQR />} />
       <Route path="verification/:id" element={<Verification />} />
-      <Route path="attendance" element={<InvigilatorAttendance />} />
+      <Route path="attendance-log" element={<InvigilatorAttendance />} />
     </Route>
 
     <Route path="*" element={<Navigate to="/student" replace />} />
