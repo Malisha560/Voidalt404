@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import Footer from './components/common/Footer'
 import AdminLayout from './layouts/AdminLayout'
 import InvigilatorLayout from './layouts/InvigilatorLayout'
 import StudentLayout from './layouts/StudentLayout'
@@ -47,7 +48,10 @@ function App() {
     </Route>
 
     <Route path="*" element={<Navigate to="/student" replace />} />
-  </Routes></BrowserRouter>
+  </Routes>
+  <Footer />
+</BrowserRouter>
 }
+
 
 export default App
