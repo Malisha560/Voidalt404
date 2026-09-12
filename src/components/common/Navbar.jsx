@@ -1,31 +1,63 @@
-import { NavLink } from 'react-router-dom'
+import React from 'react'
 import Logo from './Logo'
+import {
+  FiGrid,
+  FiPenTool,
+  FiBook,
+  FiEdit,
+  FiMessageSquare,
+  FiCalendar,
+  FiUserCheck,
+  FiCreditCard,
+  FiSearch,
+  FiBell,
+  FiUser
+} from 'react-icons/fi'
 
-const navItemsByRole = {
-  student: [
-    ['Home', '/student', '□'], ['Classrooms', '#', '□'], ['Subjects', '#', '□'], ['Testpapers', '#', '□'],
-    ['Chat Rooms', '#', '□'], ['My Time-Table', '#', '□'], ['Help', '#', '?'], ['Admit Card', '/student/admit-card', '▣'],
-  ],
-  invigilator: [
-    ['Scan', '/invigilator/scan', '▣'], ['Student Info', '/invigilator/student-info', '□'], ['Attendance Record', '/invigilator/attendance-record', '▤'],
-  ],
-  admin: [
-    ['Student Info', '/admin/student-info', '♙'], ['Attendance Log', '/admin/attendance-log', '▱'],
-  ],
-}
+const Navbar = ({ activeTab, setActiveTab }) => {
+  const navItems = [
+    { name: 'Home', icon: <FiGrid /> },
+    { name: 'Classrooms', icon: <FiPenTool /> },
+    { name: 'Subjects', icon: <FiBook /> },
+    { name: 'Testpapers', icon: <FiEdit /> },
+    { name: 'Chat Rooms', icon: <FiMessageSquare /> },
+    { name: 'My Time-Table', icon: <FiCalendar /> },
+    { name: 'Help', icon: <FiUserCheck /> },
+    { name: 'Admit Card', icon: <FiCreditCard /> },
+  ]
 
-function Navbar({ role = 'student', student, studentId }) {
-  const navItems = navItemsByRole[role] || navItemsByRole.student
-  const studentCanAccessAdmitCard = role !== 'student' || student?.feeStatus === 'CLEAR'
-  const addStudentQuery = (href) => studentId ? `${href}?studentId=${encodeURIComponent(studentId)}` : href
+  return (
+    <header className="navbar-container">
+      {/* Render Logo component on the left */}
+      <div className="navbar-logo-section">
+        <Logo />
+      </div>
 
-  return <header className="portal-header">
-    <div className="brand-area"><Logo /><div className="college-name">Islington College Kathmandu</div></div>
-    <div className="header-actions" aria-label="Portal actions"><span aria-hidden="true">⌕</span><span className="notification" aria-hidden="true">♧<b>26</b></span><button className="profile" type="button" aria-label="Profile">●</button></div>
-    <nav className="portal-nav" aria-label={`${role} portal navigation`}>
-      {navItems.filter(([label]) => label !== 'Admit Card' || studentCanAccessAdmitCard).map(([label, href, icon]) => href === '#' ? <a className="nav-item" href="#" key={label} onClick={(event) => event.preventDefault()}><span className="nav-icon" aria-hidden="true">{icon}</span>{label}</a> : <NavLink className="nav-item" to={addStudentQuery(href)} key={label} end={label === 'Home'}><span className="nav-icon" aria-hidden="true">{icon}</span>{label}</NavLink>)}
-    </nav>
-  </header>
+      <div className="navbar-main-content">
+        <div className="navbar-header-top">
+          <span className="college-title">Islington College Kathmandu</span>
+          <div className="navbar-action-icons">
+            <button className="icon-btn" title="Search"><FiSearch /></button>
+            <button className="icon-btn" title="Notifications"><FiBell /></button>
+            <button className="icon-btn profile-avatar-btn" title="Profile"><FiUser /></button>
+          </div>
+        </div>
+
+        <nav className="navbar-nav-links">
+          {navItems.map((item) => (
+            <button
+              key={item.name}
+              className={`nav-link-btn ${activeTab === item.name ? 'active' : ''}`}
+              onClick={() => setActiveTab(item.name)}
+            >
+              <span className="nav-link-icon">{item.icon}</span>
+              <span>{item.name}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </header>
+  )
 }
 
 export default Navbar
