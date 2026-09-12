@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
   "start": "node app.js",
-  "dev": "nodemon app.js"
+  "dev": "nodemon app.js",
+  "create-user": "node scripts/create-user.js",
+  "seed-students": "node scripts/seed-students.js"
 },
   "keywords": [],
   "author": "",

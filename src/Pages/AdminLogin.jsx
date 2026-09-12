@@ -1,101 +1,72 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../services/api";
+import illustration from "../assets/logo-illustration.jpeg";
 import "./AdminLogin.css";
 
 const AdminLogin = () => {
+  const navigate = useNavigate();
+  const [role, setRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log("Email:", email);
-    console.log("Password:", password);
+    setError("");
+    setSubmitting(true);
+    try {
+      const session = await loginUser({ email, password, role });
+      localStorage.setItem("auth_session", JSON.stringify(session));
+      navigate(role === "admin" ? "/admin" : "/invigilator", { replace: true });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Unable to sign in. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="login-page">
       <div className="login-container">
 
-        {/* LEFT SIDE */}
         <div className="login-illustration">
-
-          {/* Decorative curves */}
-          <svg
-            className="decorative-lines"
-            viewBox="0 0 500 600"
-            preserveAspectRatio="none"
-          >
-            <path
-              className="line line-yellow"
-              d="M-20 100
-                 C70 80, 90 120, 130 180
-                 C180 255, 220 260, 270 250
-                 C330 238, 325 160, 325 100
-                 C325 50, 350 20, 390 0"
-            />
-
-            <path
-              className="line line-green"
-              d="M-20 105
-                 C65 85, 90 125, 135 185
-                 C185 255, 220 270, 275 255
-                 C335 240, 330 160, 330 100
-                 C330 45, 355 15, 395 -5"
-            />
-
-            <path
-              className="line line-yellow lower"
-              d="M-20 520
-                 C60 520, 120 500, 180 465
-                 C240 430, 280 445, 335 450
-                 C405 455, 440 445, 510 380"
-            />
-
-            <path
-              className="line line-green lower"
-              d="M210 600
-                 C200 550, 190 515, 220 470
-                 C250 425, 290 420, 340 425
-                 C405 435, 455 420, 510 375"
-            />
-          </svg>
-
-          {/* Mountains */}
-          <div className="mountains">
-            <div className="mountain mountain-back"></div>
-            <div className="mountain mountain-front"></div>
-          </div>
-
-          {/* Hills */}
-          <div className="hills">
-            <div className="hill hill-one"></div>
-            <div className="hill hill-two"></div>
-          </div>
-
-          {/* Tree */}
-          <div className="tree">
-            <div className="tree-top"></div>
-            <div className="tree-trunk"></div>
-          </div>
-
-          {/* Temple */}
-          <div className="temple">
-            <div className="temple-roof"></div>
-            <div className="temple-body"></div>
-            <div className="temple-base"></div>
-          </div>
+          <img src={illustration} alt="Mountain landscape illustration" />
         </div>
 
         {/* RIGHT SIDE */}
         <div className="login-form-section">
           <form className="login-form" onSubmit={handleSubmit}>
 
-            <h1>Sign in to your Admin Account</h1>
+            <h1>Sign in to your Account</h1>
+
+            <div className="role-switch" aria-label="Choose account type">
+              <span>Account type</span>
+              <button
+                type="button"
+                className={role === "admin" ? "role-option active" : "role-option"}
+                onClick={() => setRole("admin")}
+                aria-pressed={role === "admin"}
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                className={role === "invigilator" ? "role-option active" : "role-option"}
+                onClick={() => setRole("invigilator")}
+                aria-pressed={role === "invigilator"}
+              >
+                Invigilator
+              </button>
+            </div>
 
             <div className="input-group">
               <input
                 type="email"
                 placeholder="Email Address"
+                aria-label="Email Address"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -105,6 +76,8 @@ const AdminLogin = () => {
               <input
                 type="password"
                 placeholder="Password"
+                aria-label="Password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -114,8 +87,10 @@ const AdminLogin = () => {
               Forgot your password?
             </a>
 
-            <button type="submit" className="sign-in-button">
-              Sign In
+            {error && <p className="login-error" role="alert">{error}</p>}
+
+            <button type="submit" className="sign-in-button" disabled={submitting}>
+              {submitting ? "Signing In..." : "Sign In"}
             </button>
 
           </form>

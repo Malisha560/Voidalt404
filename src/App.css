@@ -36,6 +36,12 @@ button {
     font-weight: 500;
 }
 
+.navbar-logo {
+    width: 60px;
+    height: 58px;
+    object-fit: contain;
+}
+
 .college-mark {
     width: 60px;
     height: 58px;
@@ -123,6 +129,113 @@ button {
     margin: 0 auto;
     padding: 24px 26px 50px;
     color: var(--ink);
+}
+
+.role-page {
+    min-height: calc(100vh - 112px);
+}
+
+.role-page h1 {
+    margin: 0 0 8px;
+    color: var(--ink);
+    font-size: 28px;
+    font-weight: 500;
+}
+
+.role-page p:last-child {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.portal-shell {
+    min-height: 100vh;
+    display: flex;
+    background: #f5f7fb;
+    color: #263248;
+}
+
+.portal-sidebar {
+    width: 232px;
+    flex: 0 0 232px;
+    padding: 28px 16px;
+    color: #eef4ff;
+    background: #17243b;
+}
+
+.invigilator-shell .portal-sidebar {
+    background: #123a43;
+}
+
+.sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 0 14px 32px;
+}
+
+.sidebar-brand strong {
+    font-size: 16px;
+    letter-spacing: 1.5px;
+}
+
+.sidebar-brand span {
+    color: #8fa5c8;
+    font-size: 10px;
+    letter-spacing: 1.2px;
+}
+
+.invigilator-shell .sidebar-brand span {
+    color: #8bc1c6;
+}
+
+.sidebar-nav {
+    display: grid;
+    gap: 6px;
+}
+
+.sidebar-nav a {
+    padding: 12px 14px;
+    border-radius: 6px;
+    color: #a9b8d0;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    color: #fff;
+    background: #293b5b;
+}
+
+.invigilator-shell .sidebar-nav a:hover,
+.invigilator-shell .sidebar-nav a.active {
+    background: #205762;
+}
+
+.portal-workspace {
+    min-width: 0;
+    flex: 1;
+}
+
+.portal-topbar {
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 34px;
+    border-bottom: 1px solid #e5e9f0;
+    background: #fff;
+    color: #68758a;
+    font-size: 13px;
+}
+
+.portal-user {
+    color: #263248;
+    font-weight: 600;
+}
+
+.portal-workspace > .portal-main {
+    max-width: 1180px;
 }
 
 .home-page {
@@ -293,6 +406,25 @@ button {
     grid-template-columns: 300px 1fr;
     gap: 22px;
     align-items: start;
+}
+
+.subject-select {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 18px 0;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.subject-select select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 12px;
 }
 
 .exam-list-panel,

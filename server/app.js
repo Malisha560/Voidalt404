@@ -4,10 +4,11 @@ const crypto = require("crypto");
 require("dotenv").config();
 
 const pool = require("./config/db");
+const authRoutes = require("./routes/auth");
+const { authenticateToken, requireRole } = require("./middleware/auth");
 
 const app = express();
 
-const student = { name: "Ram Sharma", studentId: "ST001", course: "BSc Computer Science" };
 const exams = [
   { id: "database-systems", subject: "Database Systems", dateLabel: "20 September 2026", startLabel: "10:00 AM", endLabel: "12:00 PM", startTime: "2026-09-20T10:00:00+05:45", building: "Block A", room: "A204", seat: "A204-01" },
   { id: "web-development", subject: "Web Development", dateLabel: "23 September 2026", startLabel: "10:00 AM", endLabel: "12:00 PM", startTime: "2026-09-23T10:00:00+05:45", building: "Block B", room: "B102", seat: "B102-14" },
@@ -15,8 +16,16 @@ const exams = [
 ];
 const qrTokens = new Map();
 
-function getFeeStatus(req) {
-  return String(req.query.feeStatus || "CLEAR").toUpperCase() === "UNCLEAR" ? "UNCLEAR" : "CLEAR";
+async function getStudent(studentId) {
+  const [[studentRecord]] = await pool.query(`
+    SELECT s.id, s.student_id AS studentId, s.name, s.email, s.phone_number AS phoneNumber,
+           s.course, s.year, COALESCE(f.status, 'UNCLEAR') AS feeStatus
+    FROM students s
+    LEFT JOIN fee_status f ON f.student_id = s.id
+    WHERE s.student_id = ?
+    LIMIT 1
+  `, [studentId || "ST001"]);
+  return studentRecord;
 }
 
 function findExam(req, res) {
@@ -30,6 +39,45 @@ function findExam(req, res) {
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/auth", authRoutes);
+
+app.get("/api/admin/students", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const [students] = await pool.query(`
+      SELECT s.id, s.student_id AS studentId, s.name, s.email, s.phone_number AS phoneNumber,
+             s.course, s.year, COALESCE(f.status, 'UNCLEAR') AS feeStatus
+      FROM students s
+      LEFT JOIN fee_status f ON f.student_id = s.id
+      ORDER BY s.name ASC
+    `);
+    return res.json({ students });
+  } catch (error) {
+    console.error("Unable to load admin students:", error);
+    return res.status(500).json({ message: "Unable to load student information" });
+  }
+});
+
+app.patch("/api/admin/students/:id/fee-status", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const status = String(req.body.status || "").toUpperCase();
+  if (!["CLEAR", "UNCLEAR"].includes(status)) {
+    return res.status(400).json({ message: "Fee status must be CLEAR or UNCLEAR" });
+  }
+
+  try {
+    const [[studentRecord]] = await pool.query("SELECT id FROM students WHERE id = ? LIMIT 1", [req.params.id]);
+    if (!studentRecord) return res.status(404).json({ message: "Student not found" });
+
+    await pool.execute(
+      `INSERT INTO fee_status (student_id, status) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE status = VALUES(status)`,
+      [studentRecord.id, status],
+    );
+    return res.json({ studentId: studentRecord.id, feeStatus: status });
+  } catch (error) {
+    console.error("Unable to update student fee status:", error);
+    return res.status(500).json({ message: "Unable to update fee status" });
+  }
+});
 
 app.get("/", (req, res) => {
   res.json({
@@ -56,29 +104,57 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
-app.get("/api/student/admit-cards", (req, res) => {
-  const feeStatus = getFeeStatus(req);
-  res.json({ feeStatus, exams: feeStatus === "CLEAR" ? exams : [] });
+app.get("/api/student/profile", async (req, res) => {
+  try {
+    const studentRecord = await getStudent(req.query.studentId);
+    if (!studentRecord) return res.status(404).json({ message: "Student not found" });
+    return res.json({ student: studentRecord });
+  } catch (error) {
+    console.error("Unable to load student profile:", error);
+    return res.status(500).json({ message: "Unable to load student profile" });
+  }
 });
 
-app.get("/api/student/exams/:id/admit-card", (req, res) => {
-  const exam = findExam(req, res);
-  if (!exam) return;
-  res.json({ ...exam, student, feeStatus: getFeeStatus(req) });
+app.get("/api/student/admit-cards", async (req, res) => {
+  try {
+    const studentRecord = await getStudent(req.query.studentId);
+    if (!studentRecord) return res.status(404).json({ message: "Student not found" });
+    return res.json({ feeStatus: studentRecord.feeStatus, exams: studentRecord.feeStatus === "CLEAR" ? exams.map((exam) => ({ ...exam, student: studentRecord })) : [] });
+  } catch (error) {
+    console.error("Unable to load student admit cards:", error);
+    return res.status(500).json({ message: "Unable to load admit cards" });
+  }
 });
 
-app.get("/api/student/exams/:id/qr", (req, res) => {
+app.get("/api/student/exams/:id/admit-card", async (req, res) => {
   const exam = findExam(req, res);
   if (!exam) return;
-  if (getFeeStatus(req) !== "CLEAR") return res.status(403).json({ message: "Examination fee has not been cleared" });
+  try {
+    const studentRecord = await getStudent(req.query.studentId);
+    if (!studentRecord) return res.status(404).json({ message: "Student not found" });
+    if (studentRecord.feeStatus !== "CLEAR") return res.status(403).json({ message: "Examination fee has not been cleared" });
+    return res.json({ ...exam, student: studentRecord, feeStatus: studentRecord.feeStatus });
+  } catch (error) {
+    console.error("Unable to load student admit card:", error);
+    return res.status(500).json({ message: "Unable to load admit card" });
+  }
+});
+
+app.get("/api/student/exams/:id/qr", async (req, res) => {
+  const exam = findExam(req, res);
+  if (!exam) return;
+  const studentRecord = await getStudent(req.query.studentId);
+  if (!studentRecord) return res.status(404).json({ message: "Student not found" });
+  if (studentRecord.feeStatus !== "CLEAR") return res.status(403).json({ message: "Examination fee has not been cleared" });
 
   const availableAt = new Date(new Date(exam.startTime).getTime() - (2 * 60 * 60 * 1000));
   if (Date.now() < availableAt.getTime()) {
     return res.status(403).json({ available: false, availableAt: availableAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) });
   }
 
-  if (!qrTokens.has(exam.id)) qrTokens.set(exam.id, crypto.randomBytes(32).toString("hex"));
-  return res.json({ available: true, token: qrTokens.get(exam.id) });
+  const tokenKey = `${studentRecord.studentId}:${exam.id}`;
+  if (!qrTokens.has(tokenKey)) qrTokens.set(tokenKey, crypto.randomBytes(32).toString("hex"));
+  return res.json({ available: true, token: qrTokens.get(tokenKey) });
 });
 
 const PORT = process.env.PORT || 5000;
