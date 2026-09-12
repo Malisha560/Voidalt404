@@ -56,14 +56,14 @@ async function getStudentExam(studentId, examId) {
 }
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use("/api/auth", authRoutes);
 
 app.get("/api/admin/students", authenticateToken, requireRole("ADMIN"), async (req, res) => {
   try {
     const [students] = await pool.query(`
       SELECT s.id, s.student_id AS studentId, s.name, s.email, s.phone_number AS phoneNumber,
-             s.course, s.year, COALESCE(f.status, 'UNCLEAR') AS feeStatus
+              s.course, s.profile_image AS profileImage, s.year, COALESCE(f.status, 'UNCLEAR') AS feeStatus
       FROM students s
       LEFT JOIN fee_status f ON f.student_id = s.id
       ORDER BY s.name ASC
@@ -97,11 +97,28 @@ app.patch("/api/admin/students/:id/fee-status", authenticateToken, requireRole("
   }
 });
 
+app.patch("/api/admin/students/:id/profile-image", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const profileImage = String(req.body.profileImage || "");
+  if (profileImage && !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(profileImage)) {
+    return res.status(400).json({ message: "Profile image must be a JPEG, PNG, or WebP image" });
+  }
+  if (profileImage.length > 900000) return res.status(413).json({ message: "Profile image is too large" });
+
+  try {
+    const [result] = await pool.execute("UPDATE students SET profile_image = ? WHERE id = ?", [profileImage || null, req.params.id]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Student not found" });
+    return res.json({ studentId: Number(req.params.id), profileImage: profileImage || null });
+  } catch (error) {
+    console.error("Unable to update student profile image:", error);
+    return res.status(500).json({ message: "Unable to update profile image" });
+  }
+});
+
 app.get("/api/invigilator/students", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
   try {
     const [students] = await pool.query(`
       SELECT s.id, s.student_id AS studentId, s.name, s.email,
-             s.phone_number AS phoneNumber, s.course, s.year,
+              s.phone_number AS phoneNumber, s.course, s.profile_image AS profileImage, s.year,
              COALESCE(f.status, 'UNCLEAR') AS feeStatus
       FROM students s
       LEFT JOIN fee_status f ON f.student_id = s.id
@@ -111,6 +128,108 @@ app.get("/api/invigilator/students", authenticateToken, requireRole("INVIGILATOR
   } catch (error) {
     console.error("Unable to load invigilator students:", error);
     return res.status(500).json({ message: "Unable to load student information" });
+  }
+});
+
+app.get("/api/invigilator/students/:id", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+  try {
+    const [[student]] = await pool.query(`
+      SELECT s.id, s.student_id AS studentId, s.name, s.email,
+             s.phone_number AS phoneNumber, s.course, s.profile_image AS profileImage,
+             s.year, COALESCE(f.status, 'UNCLEAR') AS feeStatus
+      FROM students s
+      LEFT JOIN fee_status f ON f.student_id = s.id
+      WHERE s.id = ?
+      LIMIT 1
+    `, [req.params.id]);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    const [exams] = await pool.query(`
+      SELECT e.id, e.exam_name AS examName, e.subject, e.exam_date AS examDate,
+             e.start_time AS startTime, e.end_time AS endTime,
+             ea.building, ea.room, ea.seat_number AS seatNumber
+      FROM exam_allocations ea
+      INNER JOIN exams e ON e.id = ea.exam_id
+      WHERE ea.student_id = ?
+      ORDER BY e.exam_date ASC, e.start_time ASC
+    `, [student.id]);
+    return res.json({ student, exams });
+  } catch (error) {
+    console.error("Unable to load invigilator student details:", error);
+    return res.status(500).json({ message: "Unable to load student details" });
+  }
+});
+
+app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+  const studentId = Number(req.body.studentId);
+  const examId = Number(req.body.examId);
+  const status = String(req.body.status || "").toUpperCase();
+  if (!studentId || !examId || !["PRESENT", "ABSENT"].includes(status)) {
+    return res.status(400).json({ message: "Student, exam, and a valid attendance status are required" });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [[allocation]] = await connection.query(
+      "SELECT student_id AS studentId, exam_id AS examId FROM exam_allocations WHERE student_id = ? AND exam_id = ? LIMIT 1",
+      [studentId, examId],
+    );
+    if (!allocation) {
+      await connection.rollback();
+      return res.status(404).json({ message: "Student is not allocated to this examination" });
+    }
+
+    const [[existing]] = await connection.query(
+      "SELECT id, status FROM attendance WHERE student_id = ? AND exam_id = ? FOR UPDATE",
+      [studentId, examId],
+    );
+    const oldStatus = existing?.status || "ABSENT";
+    let attendanceId = existing?.id;
+    if (existing) {
+      await connection.execute(
+        "UPDATE attendance SET invigilator_id = ?, method = 'MANUAL', status = ?, verified_at = NOW(), rejection_reason = ? WHERE id = ?",
+        [req.user.sub, status, status === "ABSENT" ? "Entry rejected by invigilator" : null, existing.id],
+      );
+    } else {
+      const [inserted] = await connection.execute(
+        "INSERT INTO attendance (exam_id, student_id, invigilator_id, method, status, verified_at, rejection_reason) VALUES (?, ?, ?, 'MANUAL', ?, NOW(), ?)",
+        [examId, studentId, req.user.sub, status, status === "ABSENT" ? "Entry rejected by invigilator" : null],
+      );
+      attendanceId = inserted.insertId;
+    }
+    await connection.execute(
+      "INSERT INTO attendance_logs (attendance_id, action, old_status, new_status, changed_by, reason) VALUES (?, ?, ?, ?, ?, ?)",
+      [attendanceId, status === "PRESENT" ? "APPROVE_ENTRY" : "REJECT_ENTRY", oldStatus, status, req.user.sub, status === "ABSENT" ? "Entry rejected by invigilator" : "Entry approved by invigilator"],
+    );
+    await connection.commit();
+    return res.json({ attendanceId, studentId, examId, status, method: "MANUAL" });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Unable to update attendance:", error);
+    return res.status(500).json({ message: "Unable to update attendance" });
+  } finally {
+    connection.release();
+  }
+});
+
+app.get("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+  try {
+    const [records] = await pool.query(`
+      SELECT ea.exam_id AS examId, e.exam_name AS examName, e.subject,
+             ea.building, ea.room, ea.student_id AS studentId,
+             s.student_id AS studentCode, s.name, s.email, s.phone_number AS phoneNumber,
+             COALESCE(a.status, 'ABSENT') AS status,
+             a.method, a.verified_at AS verifiedAt
+      FROM exam_allocations ea
+      INNER JOIN exams e ON e.id = ea.exam_id
+      INNER JOIN students s ON s.id = ea.student_id
+      LEFT JOIN attendance a ON a.exam_id = ea.exam_id AND a.student_id = ea.student_id
+      ORDER BY e.exam_date ASC, e.start_time ASC, s.name ASC
+    `);
+    return res.json({ records });
+  } catch (error) {
+    console.error("Unable to load attendance:", error);
+    return res.status(500).json({ message: "Unable to load attendance records" });
   }
 });
 

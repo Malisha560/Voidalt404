@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchInvigilatorStudents } from '../../services/api'
 import './SearchStudent.css'
 
 function SearchStudent() {
+  const navigate = useNavigate()
   const [students, setStudents] = useState([])
   const [course, setCourse] = useState('')
   const [level, setLevel] = useState('')
@@ -31,7 +33,7 @@ function SearchStudent() {
     {error && <p className="admin-table-error">{error}</p>}
     <div className="student-table-wrap"><table className="student-table"><thead><tr><th>S. No</th><th>Name</th><th>College ID</th><th>Contact</th><th>Fee Status</th></tr></thead><tbody>
       {loading && <tr><td className="table-message" colSpan="5">Loading student information...</td></tr>}
-      {!loading && !error && filteredStudents.map((student, index) => <tr key={student.id}><td>{index + 1}.</td><td>{student.name}</td><td>{student.email}</td><td>{student.phoneNumber}</td><td><span className={`invigilator-fee-status ${student.feeStatus.toLowerCase()}`}>{student.feeStatus === 'CLEAR' ? 'Clear' : 'Unclear'}</span></td></tr>)}
+      {!loading && !error && filteredStudents.map((student, index) => <tr className="student-row-link" key={student.id} onClick={() => navigate(`/invigilator/verification/${student.id}`)}><td>{index + 1}.</td><td>{student.name}</td><td>{student.email}</td><td>{student.phoneNumber}</td><td><span className={`invigilator-fee-status ${student.feeStatus.toLowerCase()}`}>{student.feeStatus === 'CLEAR' ? 'Clear' : 'Unclear'}</span></td></tr>)}
       {!loading && !error && filteredStudents.length === 0 && <tr><td className="table-message" colSpan="5">No students found.</td></tr>}
     </tbody></table></div>
   </main>

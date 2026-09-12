@@ -1,0 +1,49 @@
+.student-card-page {
+  min-height: calc(100vh - 112px);
+  padding: 28px 42px 50px;
+  background: #f8f9fa;
+}
+
+.back-to-students { margin-bottom: 18px; border: 0; background: transparent; color: #2379d0; font-size: 13px; }
+.student-id-card { width: min(930px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid #e6e6e6; border-radius: 7px; background: #fff; box-shadow: 0 10px 24px rgb(32 43 56 / 7%); }
+.student-id-card.fee-clear-card { border: 3px solid #55aa5b; }
+.student-id-card.fee-unclear-card { border-color: #e6e6e6; }
+.id-card-header { display: grid; grid-template-columns: 42px 1fr auto 48px; align-items: center; gap: 14px; min-height: 76px; padding: 14px 28px; color: #36363b; }
+.id-card-mark { display: grid; width: 42px; height: 48px; place-items: center; color: #fff; background: linear-gradient(135deg, #263d91 50%, #bd3039 50%); font-size: 12px; font-weight: 700; }
+.id-card-header span { font-size: 16px; }
+.id-card-header strong { font-size: 23px; letter-spacing: 2px; }
+.id-card-check { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: #fff; background: #6abd42; font-size: 24px; font-weight: 700; }
+.id-card-body { position: relative; min-height: 330px; display: grid; grid-template-columns: 180px 202px 1fr 64px; gap: 24px; align-items: center; padding: 28px 46px 32px 30px; }
+.id-card-accent { align-self: stretch; display: flex; align-items: end; padding: 0 18px 24px; color: #fff; background: #ac171b; background-image: radial-gradient(rgb(255 255 255 / 11%) 7px, transparent 8px); background-size: 22px 22px; font-size: 13px; }
+.student-photo { width: 202px; height: 202px; display: grid; place-items: center; overflow: hidden; color: #66819b; background: #e9f1f5; font-size: 44px; font-weight: 600; }
+.student-photo img { width: 100%; height: 100%; object-fit: cover; }
+.student-card-details { display: grid; gap: 17px; margin: 0; }
+.student-card-details div { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; font-size: 13px; }
+.student-card-details dt { color: #34343a; }
+.student-card-details dd { margin: 0; color: #44444a; overflow-wrap: anywhere; }
+.student-card-details dd.clear { color: #248b4a; font-weight: 700; }
+.student-card-details dd.unclear { color: #bd4c4c; font-weight: 700; }
+.student-card-details select { max-width: 180px; padding: 4px 7px; border: 1px solid #d9e2eb; border-radius: 4px; color: #44444a; background: #fff; font-size: 12px; }
+.id-card-actions { display: grid; gap: 34px; justify-items: center; }
+.fee-clear-card .id-card-actions { padding: 12px 7px; border: 2px solid #55aa5b; border-radius: 34px; }
+.approve-card-button, .reject-card-button { display: grid; width: 54px; height: 54px; place-items: center; border: 0; border-radius: 50%; color: #fff; font-size: 34px; font-weight: 700; cursor: pointer; }
+.approve-card-button { background: #6abd42; }
+.reject-card-button { background: #ad171b; }
+.approve-card-button:disabled, .reject-card-button:disabled { cursor: wait; opacity: .55; }
+.attendance-confirmation { color: #248b4a; font-size: 11px; white-space: nowrap; }
+.attendance-confirmation.rejected { color: #bd4c4c; }
+.student-id-card footer { padding: 11px; color: #fff; background: #222; font-size: 19px; font-weight: 700; letter-spacing: 2px; text-align: center; }
+.student-card-message { padding: 100px; color: #76869a; text-align: center; }
+.student-card-message.error { color: #b34d4d; }
+.student-row-link { cursor: pointer; }
+.student-row-link:hover { background: #f4f8fc; }
+
+@media (max-width: 850px) {
+  .student-card-page { padding: 22px 18px; }
+  .id-card-header { grid-template-columns: 38px 1fr 38px; padding: 14px 18px; }
+  .id-card-header strong { grid-column: 1 / -1; grid-row: 2; font-size: 18px; }
+  .id-card-body { grid-template-columns: 1fr; padding: 26px; }
+  .id-card-accent { min-height: 80px; }
+  .student-photo { justify-self: center; }
+  .id-card-actions { grid-template-columns: 1fr 1fr; }
+}

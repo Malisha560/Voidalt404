@@ -85,6 +85,12 @@
 .student-table th:nth-child(5) { width: 18%; }
 .student-table td:first-child { text-align: center; }
 
+.student-name-cell { display: flex; align-items: center; gap: 8px; min-width: 190px; }
+.student-name-cell img, .student-avatar-fallback { width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; object-fit: cover; }
+.student-avatar-fallback { display: grid; place-items: center; color: #2875a0; background: #e3f0f5; font-size: 12px; font-weight: 700; }
+.image-upload-button { color: #3d84b4; font-size: 9px; cursor: pointer; }
+.image-upload-button input { display: none; }
+
 .fee-status-select {
   position: relative;
   display: inline-flex;

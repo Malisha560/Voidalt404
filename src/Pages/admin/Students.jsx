@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchAdminStudents, updateStudentFeeStatus } from '../../services/api'
+import { fetchAdminStudents, updateStudentFeeStatus, updateStudentProfileImage } from '../../services/api'
 import './Students.css'
 
 function Students() {
@@ -10,6 +10,7 @@ function Students() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [savingStudentId, setSavingStudentId] = useState(null)
+  const [savingImageId, setSavingImageId] = useState(null)
 
   useEffect(() => {
     fetchAdminStudents()
@@ -43,6 +44,21 @@ function Students() {
     }
   }
 
+  const handleImageChange = async (studentId, file) => {
+    if (!file) return
+    setSavingImageId(studentId)
+    setError('')
+    try {
+      const profileImage = await resizeImage(file)
+      await updateStudentProfileImage(studentId, profileImage)
+      setStudents((current) => current.map((student) => student.id === studentId ? { ...student, profileImage } : student))
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Unable to save profile image.')
+    } finally {
+      setSavingImageId(null)
+    }
+  }
+
   return <main className="admin-students-page">
     <div className="student-filters">
       <select value={course} onChange={(event) => setCourse(event.target.value)} aria-label="Filter by course">
@@ -63,7 +79,7 @@ function Students() {
         <tbody>
           {loading && <tr><td className="table-message" colSpan="5">Loading student information...</td></tr>}
           {!loading && !error && filteredStudents.map((student, index) => <tr key={student.id}>
-            <td>{index + 1}.</td><td>{student.name}</td><td>{student.email}</td><td>{student.phoneNumber}</td>
+            <td>{index + 1}.</td><td><div className="student-name-cell">{student.profileImage ? <img src={student.profileImage} alt="" /> : <span className="student-avatar-fallback">{student.name.slice(0, 1)}</span>}<span>{student.name}</span><label className="image-upload-button">{savingImageId === student.id ? 'Saving...' : 'Upload photo'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={savingImageId === student.id} onChange={(event) => handleImageChange(student.id, event.target.files?.[0])} /></label></div></td><td>{student.email}</td><td>{student.phoneNumber}</td>
             <td><label className={`fee-status-select ${student.feeStatus.toLowerCase()} ${savingStudentId === student.id ? 'saving' : ''}`}>
               <select value={student.feeStatus} onChange={(event) => handleFeeStatusChange(student.id, event.target.value)} disabled={savingStudentId === student.id} aria-label={`Fee status for ${student.name}`}>
                 <option value="CLEAR">Clear</option>
@@ -77,6 +93,33 @@ function Students() {
       </table>
     </div>
   </main>
+}
+
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const image = new Image()
+      image.onload = () => {
+        let scale = Math.min(1, 420 / Math.max(image.width, image.height))
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')
+        let output
+        do {
+          canvas.width = Math.round(image.width * scale)
+          canvas.height = Math.round(image.height * scale)
+          context.drawImage(image, 0, 0, canvas.width, canvas.height)
+          output = canvas.toDataURL('image/jpeg', 0.62)
+          scale *= 0.8
+        } while (output.length > 700000 && scale > 0.15)
+        resolve(output)
+      }
+      image.onerror = reject
+      image.src = reader.result
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }
 
 export default Students

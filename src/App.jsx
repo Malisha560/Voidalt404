@@ -8,7 +8,6 @@ import Exams from './pages/admin/Exams'
 import Fees from './pages/admin/Fees'
 import Students from './pages/admin/Students'
 import InvigilatorAttendance from './pages/invigilator/Attendance'
-import InvigilatorDashboard from './pages/invigilator/Dashboard'
 import Verification from './pages/invigilator/Verification'
 import ScanQR from './pages/invigilator/ScanQR'
 import SearchStudent from './pages/invigilator/SearchStudent'
@@ -39,7 +38,7 @@ function App() {
     </Route>
 
     <Route path="/invigilator" element={<ProtectedRoute role="INVIGILATOR"><InvigilatorLayout /></ProtectedRoute>}>
-      <Route index element={<InvigilatorDashboard />} />
+      <Route index element={<Navigate to="scan" replace />} />
       <Route path="student-info" element={<SearchStudent />} />
       <Route path="scan" element={<ScanQR />} />
       <Route path="verification/:id" element={<Verification />} />

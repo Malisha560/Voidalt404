@@ -11,9 +11,25 @@ export const updateStudentFeeStatus = (studentId, status) => {
   const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
   return api.patch(`/admin/students/${studentId}/fee-status`, { status }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)
 }
+export const updateStudentProfileImage = (studentId, profileImage) => {
+  const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
+  return api.patch(`/admin/students/${studentId}/profile-image`, { profileImage }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)
+}
 export const fetchInvigilatorStudents = () => {
   const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
   return api.get('/invigilator/students', { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data.students)
+}
+export const fetchInvigilatorStudent = (studentId) => {
+  const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
+  return api.get(`/invigilator/students/${studentId}`, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data.student)
+}
+export const updateInvigilatorAttendance = (studentId, examId, status) => {
+  const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
+  return api.post('/invigilator/attendance', { studentId, examId, status }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)
+}
+export const fetchInvigilatorAttendance = () => {
+  const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
+  return api.get('/invigilator/attendance', { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data.records)
 }
 
 export const fetchStudentProfile = (studentId = 'ST001') => api.get('/student/profile', { params: { studentId } }).then(({ data }) => data.student)
