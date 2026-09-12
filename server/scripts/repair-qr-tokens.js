@@ -16,18 +16,34 @@ async function repairQrTokens() {
     `)
 
     await connection.query(`
-      ALTER TABLE qr_tokens
-      ADD UNIQUE KEY unique_exam_student_qr (exam_id, student_id)
+      DELETE old_token FROM qr_tokens old_token
+      INNER JOIN qr_tokens newer_token
+        ON newer_token.token = old_token.token
+       AND newer_token.id > old_token.id
     `)
+
+    try {
+      await connection.query(`
+        ALTER TABLE qr_tokens
+        ADD UNIQUE KEY unique_exam_student_qr (exam_id, student_id)
+      `)
+    } catch (error) {
+      if (error.code !== 'ER_DUP_KEYNAME') throw error
+    }
+
+    try {
+      await connection.query(`
+        ALTER TABLE qr_tokens
+        ADD UNIQUE KEY unique_qr_token (token)
+      `)
+    } catch (error) {
+      if (error.code !== 'ER_DUP_KEYNAME') throw error
+    }
 
     await connection.commit()
     console.log('QR tokens repaired and uniqueness enforced.')
   } catch (error) {
     await connection.rollback()
-    if (error.code === 'ER_DUP_KEYNAME') {
-      console.log('QR token uniqueness is already enforced.')
-      return
-    }
     throw error
   } finally {
     connection.release()

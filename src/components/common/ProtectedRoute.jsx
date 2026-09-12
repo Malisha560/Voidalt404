@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
 function ProtectedRoute({ role, children }) {
@@ -9,8 +10,9 @@ function ProtectedRoute({ role, children }) {
   }
 
   const tokenPayload = decodeToken(session?.token)
+  const [now] = useState(() => Date.now())
 
-  const tokenIsValid = Boolean(tokenPayload?.exp)
+  const tokenIsValid = Boolean(tokenPayload?.exp && tokenPayload.exp * 1000 > now)
   if (!session?.token || session.user?.role !== role || tokenPayload?.role !== role || !tokenIsValid) {
     localStorage.removeItem('auth_session')
     return <Navigate to="/login" replace />

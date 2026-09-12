@@ -29,7 +29,6 @@ async function getStudentExams(studentId) {
     FROM exams e
     INNER JOIN exam_allocations ea ON ea.exam_id = e.id
     INNER JOIN students s ON s.id = ea.student_id
-    INNER JOIN programme_subjects ps ON ps.programme = s.course AND ps.subject = e.subject
     WHERE s.student_id = ?
     ORDER BY e.exam_date ASC, e.start_time ASC
   `, [studentId]);
@@ -48,6 +47,25 @@ function formatTime(value) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 || 12;
   return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+function getExamQrWindow(examDateValue, startTimeValue) {
+  const date = new Date(examDateValue);
+  const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const startTime = new Date(`${localDate}T${String(startTimeValue).slice(0, 8)}`);
+  return {
+    availableAt: new Date(startTime.getTime() - (2 * 60 * 60 * 1000)),
+    expiresAt: new Date(startTime.getTime() + (2 * 60 * 60 * 1000)),
+  };
+}
+
+async function createUniqueQrToken() {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const token = crypto.randomBytes(32).toString("hex");
+    const [[existingToken]] = await pool.query("SELECT id FROM qr_tokens WHERE token = ? LIMIT 1", [token]);
+    if (!existingToken) return token;
+  }
+  throw new Error("Unable to create a unique QR token");
 }
 
 async function getStudentExam(studentId, examId) {
@@ -114,6 +132,158 @@ app.patch("/api/admin/students/:id/profile-image", authenticateToken, requireRol
   }
 });
 
+app.get("/api/admin/exams", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const [exams] = await pool.query(`
+      SELECT e.id, e.exam_name AS examName, e.subject, e.programme, e.exam_date AS examDate,
+             e.start_time AS startTime, e.end_time AS endTime,
+             COUNT(DISTINCT ea.student_id) AS allocatedStudents
+      FROM exams e
+      LEFT JOIN exam_allocations ea ON ea.exam_id = e.id
+      GROUP BY e.id, e.exam_name, e.subject, e.programme, e.exam_date, e.start_time, e.end_time
+      ORDER BY e.exam_date ASC, e.start_time ASC
+    `);
+    return res.json({ exams });
+  } catch (error) {
+    console.error("Unable to load admin exams:", error);
+    return res.status(500).json({ message: "Unable to load examinations" });
+  }
+});
+
+app.post("/api/admin/exams", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const examName = String(req.body.examName || "").trim();
+  const subject = String(req.body.subject || "").trim();
+  const programme = String(req.body.programme || "").trim();
+  const examDate = String(req.body.examDate || "").trim();
+  const startTime = String(req.body.startTime || "").trim();
+  const endTime = String(req.body.endTime || "").trim();
+  if (!examName || !subject || !programme || !/^\d{4}-\d{2}-\d{2}$/.test(examDate) || !/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) {
+    return res.status(400).json({ message: "Exam name, subject, programme, date, start time, and end time are required" });
+  }
+  if (startTime >= endTime) return res.status(400).json({ message: "End time must be after start time" });
+
+  try {
+    const [result] = await pool.execute(
+      "INSERT INTO exams (exam_name, subject, programme, exam_date, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)",
+      [examName, subject, programme, examDate, `${startTime}:00`, `${endTime}:00`],
+    );
+    return res.status(201).json({ id: result.insertId, examName, subject, programme, examDate, startTime, endTime, allocatedStudents: 0 });
+  } catch (error) {
+    console.error("Unable to create exam:", error);
+    return res.status(500).json({ message: "Unable to create examination" });
+  }
+});
+
+app.patch("/api/admin/exams/:id/programme", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const programme = String(req.body.programme || "").trim();
+  if (!programme) return res.status(400).json({ message: "Programme is required" });
+  try {
+    const [result] = await pool.execute("UPDATE exams SET programme = ? WHERE id = ?", [programme, req.params.id]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Examination not found" });
+    return res.json({ id: Number(req.params.id), programme });
+  } catch (error) {
+    console.error("Unable to assign exam programme:", error);
+    return res.status(500).json({ message: "Unable to assign examination programme" });
+  }
+});
+
+app.get("/api/admin/exams/:id/allocations", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const [allocations] = await pool.query(`
+      SELECT ea.exam_id AS examId, ea.student_id AS studentId, s.student_id AS studentCode,
+             s.name, s.email, ea.building, ea.room, ea.seat_number AS seatNumber
+      FROM exam_allocations ea
+      INNER JOIN students s ON s.id = ea.student_id
+      WHERE ea.exam_id = ?
+      ORDER BY s.name ASC
+    `, [req.params.id]);
+    return res.json({ allocations });
+  } catch (error) {
+    console.error("Unable to load exam allocations:", error);
+    return res.status(500).json({ message: "Unable to load exam allocations" });
+  }
+});
+
+app.post("/api/admin/exams/:id/allocations", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const studentId = Number(req.body.studentId);
+  const building = String(req.body.building || "").trim();
+  const room = String(req.body.room || "").trim();
+  const seatNumber = String(req.body.seatNumber || "").trim();
+  if (!studentId || !building || !room || !seatNumber) return res.status(400).json({ message: "Student, building, room, and seat number are required" });
+
+  try {
+    const [[student]] = await pool.query("SELECT id, student_id AS studentCode, name FROM students WHERE id = ? LIMIT 1", [studentId]);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    await pool.execute(
+      `INSERT INTO exam_allocations (exam_id, student_id, building, room, seat_number)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE building = VALUES(building), room = VALUES(room), seat_number = VALUES(seat_number)`,
+      [req.params.id, studentId, building, room, seatNumber],
+    );
+    return res.status(201).json({ examId: Number(req.params.id), studentId, studentCode: student.studentCode, name: student.name, building, room, seatNumber });
+  } catch (error) {
+    console.error("Unable to save exam allocation:", error);
+    return res.status(500).json({ message: "Unable to save exam allocation" });
+  }
+});
+
+app.post("/api/admin/exams/:id/programme-allocation", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const building = String(req.body.building || "").trim();
+  const room = String(req.body.room || "").trim();
+  const seatPrefix = String(req.body.seatPrefix || "").trim();
+  if (!building || !room || !seatPrefix) return res.status(400).json({ message: "Building, room, and seat prefix are required" });
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [[exam]] = await connection.query("SELECT id, programme FROM exams WHERE id = ? LIMIT 1", [req.params.id]);
+    if (!exam) { await connection.rollback(); return res.status(404).json({ message: "Examination not found" }); }
+    const [students] = await connection.query("SELECT id FROM students WHERE course = ? ORDER BY id", [exam.programme]);
+    for (const [index, student] of students.entries()) {
+      await connection.execute(
+        `INSERT INTO exam_allocations (exam_id, student_id, building, room, seat_number)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE building = VALUES(building), room = VALUES(room), seat_number = VALUES(seat_number)`,
+        [exam.id, student.id, building, room, `${seatPrefix}-${String(index + 1).padStart(2, '0')}`],
+      );
+    }
+    await connection.commit();
+    return res.json({ examId: exam.id, programme: exam.programme, allocatedStudents: students.length, building, room, seatPrefix });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Unable to allocate programme:", error);
+    return res.status(500).json({ message: "Unable to allocate programme students" });
+  } finally {
+    connection.release();
+  }
+});
+
+app.get("/api/admin/dashboard", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const [[summary]] = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM students) AS totalStudents,
+        (SELECT COUNT(*) FROM exams) AS totalExams,
+        (SELECT COUNT(*) FROM exams WHERE TIMESTAMP(exam_date, start_time) >= NOW()) AS upcomingExams,
+        (SELECT COUNT(*) FROM attendance WHERE status = 'PRESENT') AS presentStudents,
+        (SELECT COUNT(*) FROM attendance WHERE status = 'ABSENT') AS absentStudents
+    `);
+    const [upcomingExams] = await pool.query(`
+      SELECT e.id, e.exam_name AS examName, e.subject, e.exam_date AS examDate,
+             e.start_time AS startTime, COUNT(DISTINCT ea.student_id) AS allocatedStudents
+      FROM exams e LEFT JOIN exam_allocations ea ON ea.exam_id = e.id
+      WHERE TIMESTAMP(e.exam_date, e.start_time) >= NOW()
+      GROUP BY e.id, e.exam_name, e.subject, e.exam_date, e.start_time
+      ORDER BY e.exam_date ASC, e.start_time ASC
+      LIMIT 5
+    `);
+    return res.json({ summary, upcomingExams });
+  } catch (error) {
+    console.error("Unable to load admin dashboard:", error);
+    return res.status(500).json({ message: "Unable to load dashboard" });
+  }
+});
+
 app.get("/api/invigilator/students", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
   try {
     const [students] = await pool.query(`
@@ -122,12 +292,31 @@ app.get("/api/invigilator/students", authenticateToken, requireRole("INVIGILATOR
              COALESCE(f.status, 'UNCLEAR') AS feeStatus
       FROM students s
       LEFT JOIN fee_status f ON f.student_id = s.id
+      WHERE EXISTS (SELECT 1 FROM exam_allocations ea WHERE ea.student_id = s.id)
       ORDER BY s.name ASC
     `);
     return res.json({ students });
   } catch (error) {
     console.error("Unable to load invigilator students:", error);
     return res.status(500).json({ message: "Unable to load student information" });
+  }
+});
+
+app.get("/api/invigilator/dashboard", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+  try {
+    const [[summary]] = await pool.query(`
+      SELECT
+        COUNT(DISTINCT ea.student_id) AS allocatedStudents,
+        COUNT(DISTINCT ea.exam_id) AS allocatedExams,
+        SUM(CASE WHEN a.status = 'PRESENT' THEN 1 ELSE 0 END) AS presentStudents,
+        SUM(CASE WHEN a.status = 'ABSENT' THEN 1 ELSE 0 END) AS absentStudents
+      FROM exam_allocations ea
+      LEFT JOIN attendance a ON a.exam_id = ea.exam_id AND a.student_id = ea.student_id
+    `);
+    return res.json({ summary });
+  } catch (error) {
+    console.error("Unable to load invigilator dashboard:", error);
+    return res.status(500).json({ message: "Unable to load dashboard" });
   }
 });
 
@@ -159,11 +348,12 @@ app.get("/api/invigilator/students/:id", authenticateToken, requireRole("INVIGIL
   }
 });
 
-app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILATOR", "ADMIN"), async (req, res) => {
   const studentId = Number(req.body.studentId);
   const examId = Number(req.body.examId);
   const status = String(req.body.status || "").toUpperCase();
-  if (!studentId || !examId || !["PRESENT", "ABSENT"].includes(status)) {
+  const method = String(req.body.method || "MANUAL").toUpperCase();
+  if (!studentId || !examId || !["PRESENT", "ABSENT"].includes(status) || !["MANUAL", "QR"].includes(method)) {
     return res.status(400).json({ message: "Student, exam, and a valid attendance status are required" });
   }
 
@@ -171,12 +361,17 @@ app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILA
   try {
     await connection.beginTransaction();
     const [[allocation]] = await connection.query(
-      "SELECT student_id AS studentId, exam_id AS examId FROM exam_allocations WHERE student_id = ? AND exam_id = ? LIMIT 1",
+      `SELECT ea.student_id AS studentId, ea.exam_id AS examId
+       FROM exam_allocations ea
+       INNER JOIN students s ON s.id = ea.student_id
+       LEFT JOIN fee_status f ON f.student_id = s.id
+       WHERE ea.student_id = ? AND ea.exam_id = ? AND COALESCE(f.status, 'UNCLEAR') = 'CLEAR'
+       LIMIT 1`,
       [studentId, examId],
     );
     if (!allocation) {
       await connection.rollback();
-      return res.status(404).json({ message: "Student is not allocated to this examination" });
+      return res.status(403).json({ message: "Student must have cleared fees and be allocated to this examination" });
     }
 
     const [[existing]] = await connection.query(
@@ -187,13 +382,13 @@ app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILA
     let attendanceId = existing?.id;
     if (existing) {
       await connection.execute(
-        "UPDATE attendance SET invigilator_id = ?, method = 'MANUAL', status = ?, verified_at = NOW(), rejection_reason = ? WHERE id = ?",
-        [req.user.sub, status, status === "ABSENT" ? "Entry rejected by invigilator" : null, existing.id],
+        "UPDATE attendance SET invigilator_id = ?, method = ?, status = ?, verified_at = NOW(), rejection_reason = ? WHERE id = ?",
+        [req.user.sub, method, status, status === "ABSENT" ? "Entry rejected by invigilator" : null, existing.id],
       );
     } else {
       const [inserted] = await connection.execute(
-        "INSERT INTO attendance (exam_id, student_id, invigilator_id, method, status, verified_at, rejection_reason) VALUES (?, ?, ?, 'MANUAL', ?, NOW(), ?)",
-        [examId, studentId, req.user.sub, status, status === "ABSENT" ? "Entry rejected by invigilator" : null],
+        "INSERT INTO attendance (exam_id, student_id, invigilator_id, method, status, verified_at, rejection_reason) VALUES (?, ?, ?, ?, ?, NOW(), ?)",
+        [examId, studentId, req.user.sub, method, status, status === "ABSENT" ? "Entry rejected by invigilator" : null],
       );
       attendanceId = inserted.insertId;
     }
@@ -202,7 +397,7 @@ app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILA
       [attendanceId, status === "PRESENT" ? "APPROVE_ENTRY" : "REJECT_ENTRY", oldStatus, status, req.user.sub, status === "ABSENT" ? "Entry rejected by invigilator" : "Entry approved by invigilator"],
     );
     await connection.commit();
-    return res.json({ attendanceId, studentId, examId, status, method: "MANUAL" });
+    return res.json({ attendanceId, studentId, examId, status, method });
   } catch (error) {
     await connection.rollback();
     console.error("Unable to update attendance:", error);
@@ -212,18 +407,37 @@ app.post("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILA
   }
 });
 
-app.get("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILATOR"), async (req, res) => {
+app.get("/api/invigilator/attendance", authenticateToken, requireRole("INVIGILATOR", "ADMIN"), async (req, res) => {
   try {
     const [records] = await pool.query(`
       SELECT ea.exam_id AS examId, e.exam_name AS examName, e.subject,
              ea.building, ea.room, ea.student_id AS studentId,
              s.student_id AS studentCode, s.name, s.email, s.phone_number AS phoneNumber,
              COALESCE(a.status, 'ABSENT') AS status,
-             a.method, a.verified_at AS verifiedAt
-      FROM exam_allocations ea
+             a.method, a.verified_at AS verifiedAt,
+             latestLog.action AS lastAction, latestLog.reason AS lastReason
+      FROM (
+        SELECT exam_id, student_id, MAX(building) AS building, MAX(room) AS room, MAX(seat_number) AS seat_number
+        FROM exam_allocations
+        GROUP BY exam_id, student_id
+      ) ea
       INNER JOIN exams e ON e.id = ea.exam_id
       INNER JOIN students s ON s.id = ea.student_id
-      LEFT JOIN attendance a ON a.exam_id = ea.exam_id AND a.student_id = ea.student_id
+      LEFT JOIN (
+        SELECT MAX(id) AS id, exam_id, student_id
+        FROM attendance
+        GROUP BY exam_id, student_id
+      ) latestAttendance ON latestAttendance.exam_id = ea.exam_id AND latestAttendance.student_id = ea.student_id
+      LEFT JOIN attendance a ON a.id = latestAttendance.id
+      LEFT JOIN (
+        SELECT al.attendance_id, al.action, al.reason
+        FROM attendance_logs al
+        INNER JOIN (
+          SELECT attendance_id, MAX(id) AS id
+          FROM attendance_logs
+          GROUP BY attendance_id
+        ) newestLog ON newestLog.id = al.id
+      ) latestLog ON latestLog.attendance_id = a.id
       ORDER BY e.exam_date ASC, e.start_time ASC, s.name ASC
     `);
     return res.json({ records });
@@ -303,14 +517,11 @@ app.get("/api/student/exams/:id/qr", async (req, res) => {
     const exam = await getStudentExam(studentRecord.studentId, req.params.id);
     if (!exam) return res.status(404).json({ message: "Examination allocation not found" });
 
-    const examDate = new Date(exam.examDate).toISOString().slice(0, 10);
-    const startTime = new Date(`${examDate}T${exam.startTime}`);
-    const availableAt = new Date(startTime.getTime() - (2 * 60 * 60 * 1000));
+    const { availableAt, expiresAt } = getExamQrWindow(exam.examDate, exam.startTime);
     if (Date.now() < availableAt.getTime()) {
       return res.status(403).json({ available: false, availableAt: availableAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) });
     }
 
-    const expiresAt = new Date(startTime.getTime() + (2 * 60 * 60 * 1000));
     if (Date.now() >= expiresAt.getTime()) {
       return res.status(410).json({ available: false, expired: true, message: "QR code has expired" });
     }
@@ -318,7 +529,15 @@ app.get("/api/student/exams/:id/qr", async (req, res) => {
       "SELECT token FROM qr_tokens WHERE exam_id = ? AND student_id = ? LIMIT 1",
       [exam.id, studentRecord.id],
     );
-    const token = existingToken?.token || crypto.randomBytes(32).toString("hex");
+    let token = existingToken?.token;
+    if (token) {
+      const [[tokenOwner]] = await pool.query(
+        "SELECT exam_id AS examId, student_id AS studentId FROM qr_tokens WHERE token = ? LIMIT 1",
+        [token],
+      );
+      if (tokenOwner.examId !== exam.id || tokenOwner.studentId !== studentRecord.id) token = null;
+    }
+    if (!token) token = await createUniqueQrToken();
     if (!existingToken) {
       await pool.execute(
         "INSERT INTO qr_tokens (exam_id, student_id, token, issued_at, expires_at) VALUES (?, ?, ?, NOW(), ?)",
@@ -326,8 +545,8 @@ app.get("/api/student/exams/:id/qr", async (req, res) => {
       );
     } else {
       await pool.execute(
-        "UPDATE qr_tokens SET issued_at = NOW(), expires_at = ? WHERE exam_id = ? AND student_id = ?",
-        [expiresAt, exam.id, studentRecord.id],
+        "UPDATE qr_tokens SET token = ?, issued_at = NOW(), expires_at = ? WHERE exam_id = ? AND student_id = ?",
+        [token, expiresAt, exam.id, studentRecord.id],
       );
     }
     return res.json({ available: true, token });
@@ -348,9 +567,11 @@ app.post("/api/invigilator/scan", authenticateToken, requireRole("INVIGILATOR"),
              e.id AS examId, e.exam_name AS examName, e.subject,
              e.exam_date AS examDate, e.start_time AS startTime, e.end_time AS endTime,
              ea.building, ea.room, ea.seat_number AS seatNumber,
+                  COALESCE(f.status, 'UNCLEAR') AS feeStatus,
              qt.expires_at AS expiresAt
       FROM qr_tokens qt
       INNER JOIN students s ON s.id = qt.student_id
+                LEFT JOIN fee_status f ON f.student_id = s.id
       INNER JOIN exams e ON e.id = qt.exam_id
       INNER JOIN exam_allocations ea ON ea.exam_id = e.id AND ea.student_id = s.id
       WHERE qt.token = ?
@@ -358,6 +579,9 @@ app.post("/api/invigilator/scan", authenticateToken, requireRole("INVIGILATOR"),
     `, [token]);
 
     if (!record) return res.status(404).json({ message: "QR code is invalid" });
+    if (record.feeStatus !== "CLEAR") return res.status(403).json({ message: "Examination fee has not been cleared" });
+    const { availableAt } = getExamQrWindow(record.examDate, record.startTime);
+    if (Date.now() < availableAt.getTime()) return res.status(403).json({ message: "QR code is not active yet" });
     if (new Date(record.expiresAt).getTime() <= Date.now()) return res.status(410).json({ message: "QR code has expired" });
 
     return res.json({

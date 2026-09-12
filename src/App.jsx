@@ -2,18 +2,19 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from './layouts/AdminLayout'
 import InvigilatorLayout from './layouts/InvigilatorLayout'
 import StudentLayout from './layouts/StudentLayout'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import Attendance from './pages/admin/Attendance'
-import Exams from './pages/admin/Exams'
-import Fees from './pages/admin/Fees'
-import Students from './pages/admin/Students'
-import InvigilatorAttendance from './pages/invigilator/Attendance'
-import Verification from './pages/invigilator/Verification'
-import ScanQR from './pages/invigilator/ScanQR'
-import SearchStudent from './pages/invigilator/SearchStudent'
-import AdmitCard from './pages/student/AdmitCard'
-import StudentHome from './pages/student/StudentHome'
-import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './Pages/admin/AdminDashboard'
+import Attendance from './Pages/admin/Attendance'
+import Exams from './Pages/admin/Exams'
+import Fees from './Pages/admin/Fees'
+import Students from './Pages/admin/Students'
+import InvigilatorAttendance from './Pages/invigilator/Attendance'
+import Verification from './Pages/invigilator/Verification'
+import ScanQR from './Pages/invigilator/ScanQR'
+import SearchStudent from './Pages/invigilator/SearchStudent'
+import InvigilatorDashboard from './Pages/invigilator/Dashboard'
+import AdmitCard from './Pages/student/AdmitCard'
+import StudentHome from './Pages/student/StudentHome'
+import AdminLogin from './Pages/AdminLogin'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import './App.css'
 
@@ -29,7 +30,7 @@ function App() {
     </Route>
 
     <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminLayout /></ProtectedRoute>}>
-      <Route index element={<Navigate to="student-info" replace />} />
+      <Route index element={<Navigate to="dashboard" replace />} />
       <Route path="student-info" element={<Students />} />
       <Route path="exams" element={<Exams />} />
       <Route path="attendance-log" element={<Attendance />} />
@@ -38,7 +39,8 @@ function App() {
     </Route>
 
     <Route path="/invigilator" element={<ProtectedRoute role="INVIGILATOR"><InvigilatorLayout /></ProtectedRoute>}>
-      <Route index element={<Navigate to="scan" replace />} />
+      <Route index element={<Navigate to="dashboard" replace />} />
+      <Route path="dashboard" element={<InvigilatorDashboard />} />
       <Route path="student-info" element={<SearchStudent />} />
       <Route path="scan" element={<ScanQR />} />
       <Route path="verification/:id" element={<Verification />} />

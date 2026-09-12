@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 import { scanQrToken } from '../../services/api'
 
 function ScanQR() {
+  const navigate = useNavigate()
   const scannerRef = useRef(null)
   const scanInFlightRef = useRef(false)
   const [manualToken, setManualToken] = useState('')
@@ -19,7 +21,8 @@ function ScanQR() {
     setError('')
     await stopScanner()
     try {
-      setResult(await scanQrToken(cleanToken))
+      const scanResult = await scanQrToken(cleanToken)
+      navigate(`/invigilator/verification/${scanResult.student.id}?examId=${scanResult.exam.id}&source=qr`)
       setManualToken('')
     } catch (requestError) {
       setResult(null)
@@ -75,7 +78,7 @@ function ScanQR() {
         <form className="manual-scan-form" onSubmit={(event) => { event.preventDefault(); handleToken(manualToken) }}><label htmlFor="manual-qr-token">Manual QR token</label><div><input id="manual-qr-token" value={manualToken} onChange={(event) => setManualToken(event.target.value)} placeholder="Paste opaque token" /><button type="submit" disabled={!manualToken.trim() || submitting}>Verify</button></div></form>
         {error && <p className="scan-error" role="alert">{error}</p>}
       </section>
-      <section className="verification-panel">{result ? <><p className="section-label">SCAN RESULT</p><h2>Student Verification</h2><div className="verification-status">✓ QR verified</div><div className="verification-group"><h3>Student</h3><p><strong>{result.student.name}</strong><span>{result.student.studentId}</span><span>{result.student.course}</span></p></div><div className="verification-group"><h3>Examination</h3><p><strong>{result.exam.subject}</strong><span>{result.exam.examName}</span><span>{result.exam.building} · {result.exam.room} · Seat {result.exam.seatNumber}</span></p></div><button className="approve-entry-button" type="button">Approve Entry</button></> : <div className="verification-empty"><span>✓</span><h2>Verification details</h2><p>Student and examination information will appear here after a valid QR code is scanned.</p></div>}</section>
+      <section className="verification-panel"><div className="verification-empty"><span>✓</span><h2>Verification details</h2><p>Student and examination information will appear here after a valid QR code is scanned.</p></div></section>
     </div>
   </main>
 }

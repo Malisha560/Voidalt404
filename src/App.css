@@ -140,12 +140,44 @@ button {
     font-size: 15px;
 }
 
+.navbar-container { display: flex; align-items: stretch; gap: 18px; padding: 12px 28px 0; }
+.navbar-logo-section { display: flex; align-items: flex-start; flex: 0 0 60px; }
+.navbar-main-content { min-width: 0; flex: 1; }
+.navbar-header-top { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
+.college-title { color: #424047; font-size: 19px; font-weight: 500; }
+.navbar-action-icons { display: flex; align-items: center; gap: 14px; color: #50d3c4; }
+.icon-btn { position: relative; display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: inherit; background: transparent; font-size: 19px; }
+.icon-btn:hover { background: #edfafa; }
+.icon-btn.notification b { position: absolute; top: -2px; right: -3px; padding: 2px 5px; border-radius: 8px; color: #fff; background: #9b55ed; font: 10px system-ui; }
+.profile-avatar-btn { border: 1px solid #a9b4b3; background: #edfafa; }
+.navbar-nav-links { position: static; display: flex; align-items: flex-start; flex-wrap: wrap; gap: 22px; height: auto; min-height: 43px; }
+.nav-link-btn { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; }
+.nav-link-btn .nav-icon { display: inline-grid; width: 15px; height: 15px; margin: 0; place-items: center; font-size: 15px; }
+.nav-link-btn span:last-child { display: inline-block; }
+
 .portal-main {
     max-width: 1090px;
     margin: 0 auto;
     padding: 24px 26px 50px;
     color: var(--ink);
 }
+
+.admin-dashboard-page,
+.admin-management-page { min-height: calc(100vh - 112px); padding: 36px 42px 52px; background: #fafafa; color: var(--ink); }
+.admin-page-heading { margin-bottom: 28px; }
+.admin-page-heading h1 { margin: 0 0 7px; font-size: 28px; font-weight: 500; }
+.admin-page-heading p:last-child { margin: 0; color: var(--muted); font-size: 13px; }
+.dashboard-stat-grid { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 14px; margin-bottom: 26px; }
+.dashboard-stat, .admin-panel, .fee-list { border: 1px solid #e4e4e5; border-radius: 8px; background: #fff; }
+.dashboard-stat { display: grid; gap: 12px; min-height: 112px; padding: 18px; }
+.dashboard-stat span { color: #8b8990; font-size: 11px; }
+.dashboard-stat strong { color: #454248; font-size: 30px; font-weight: 500; }
+.dashboard-stat.positive strong { color: #27885d; }.dashboard-stat.negative strong { color: #bd5d56; }
+.dashboard-section { max-width: 900px; border: 1px solid #e4e4e5; border-radius: 8px; background: #fff; }
+.dashboard-section-heading { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #ece9ed; }.dashboard-section-heading h2, .admin-panel h2 { margin: 0; font-size: 16px; font-weight: 600; }.dashboard-section-heading span { color: #8b8990; font-size: 11px; }
+.dashboard-exam-row, .allocation-row, .fee-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 20px; border-bottom: 1px solid #f0eef1; }.dashboard-exam-row:last-child, .allocation-row:last-child, .fee-row:last-child { border-bottom: 0; }.dashboard-exam-row div, .allocation-row, .fee-row > div { display: grid; gap: 4px; }.dashboard-exam-row span, .allocation-row span, .fee-row span { color: #8b8990; font-size: 11px; }.dashboard-empty { padding: 24px 20px; color: #9b99a0; font-size: 12px; }
+.admin-panel { min-width: 0; padding: 20px; }.admin-panel h2 { margin-bottom: 18px; }.admin-form-grid { display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 14px; align-items: end; }.admin-form-grid label, .allocation-form label { display: grid; gap: 6px; color: #5d5962; font-size: 11px; font-weight: 600; }.admin-form-grid input, .allocation-form input, .allocation-form select, .fee-row select { min-width: 0; height: 36px; padding: 0 10px; border: 1px solid #dfe3e8; border-radius: 5px; background: #fff; color: #454248; font-size: 12px; font-weight: 400; }.admin-primary-button { height: 36px; padding: 0 14px; border: 0; border-radius: 5px; color: #fff; background: #8b4fd5; font-size: 12px; white-space: nowrap; }.admin-primary-button:disabled { cursor: wait; opacity: .55; }.admin-management-grid { display: grid; grid-template-columns: minmax(250px, .75fr) minmax(420px, 1.25fr); gap: 18px; margin-top: 18px; }.admin-exam-list { display: grid; gap: 8px; }.admin-exam-item { display: grid; gap: 5px; padding: 12px; border: 1px solid #e8e5eb; border-radius: 6px; color: #454248; background: #fff; text-align: left; }.admin-exam-item:hover, .admin-exam-item.selected { border-color: #9b55ed; background: #faf6ff; }.admin-exam-item span, .admin-exam-item small { color: #8b8990; font-size: 11px; }.allocation-form { display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)) auto; gap: 10px; align-items: end; }.panel-help { margin: -8px 0 18px; color: #8b8990; font-size: 12px; }.allocation-list { margin-top: 18px; border-top: 1px solid #ece9ed; }.fee-list { max-width: 900px; }.fee-row select { width: 110px; }.admin-table-error { margin: -12px 0 18px; color: #bd5d56; font-size: 12px; }
+@media (max-width: 900px) { .admin-dashboard-page, .admin-management-page { padding: 26px 18px 40px; }.dashboard-stat-grid { grid-template-columns: repeat(2, 1fr); }.admin-form-grid, .allocation-form { grid-template-columns: repeat(2, 1fr); }.admin-form-grid .admin-primary-button, .allocation-form .admin-primary-button { grid-column: 1 / -1; }.admin-management-grid { grid-template-columns: 1fr; } }
 
 .role-page {
     min-height: calc(100vh - 112px);
@@ -944,6 +976,14 @@ button {
     .admit-card {
         padding: 22px 18px;
     }
+
+    .navbar-container { gap: 12px; padding: 12px 18px 0; }
+    .navbar-logo-section { flex-basis: 48px; }
+    .navbar-logo-section .navbar-logo { width: 48px; height: 47px; }
+    .navbar-header-top { min-height: 43px; }
+    .college-title { font-size: 16px; }
+    .navbar-nav-links { gap: 12px 18px; }
+    .navbar-nav-links .nav-item { font-size: 13px; }
 }
 
 @media (max-width: 560px) {

@@ -8,9 +8,12 @@
   "dev": "nodemon app.js",
   "create-user": "node scripts/create-user.js",
   "seed-students": "node scripts/seed-students.js",
-  "seed-exams": "node scripts/seed-exams.js"
-  ,"seed-programme-exams": "node scripts/seed-programme-exams.js",
-  "repair-qr-tokens": "node scripts/repair-qr-tokens.js"
+  "seed-exams": "node scripts/seed-exams.js",
+  "seed-programme-exams": "node scripts/seed-programme-exams.js",
+  "repair-qr-tokens": "node scripts/repair-qr-tokens.js",
+  "create-qr-test-exam": "node scripts/create-qr-test-exam.js"
+  ,"bootstrap-schema": "node scripts/bootstrap-schema.js",
+  "backfill-exam-programmes": "node scripts/backfill-exam-programmes.js"
 },
   "keywords": [],
   "author": "",
