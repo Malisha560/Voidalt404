@@ -1,0 +1,538 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #fafafa;
+    color: #2d3748;
+    text-align: left;
+}
+
+.app-layout {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-area {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.placeholder-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #718096;
+}
+
+/* Color Helpers */
+.text-purple {
+    color: #8b5cf6;
+}
+
+.text-blue {
+    color: #3b82f6;
+}
+
+.text-yellow {
+    color: #d97706;
+}
+
+.text-orange {
+    color: #f97316;
+}
+
+.text-teal {
+    color: #14b8a6;
+}
+
+/* Navbar */
+.navbar-wrapper {
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 48px;
+    width: 100%;
+}
+
+.college-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+.college-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.navbar-container {
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    padding: 12px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.navbar-logo-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 20px;
+}
+
+.navbar-logo {
+    height: 64px;
+    width: auto;
+    object-fit: contain;
+}
+
+.navbar-main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.navbar-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.college-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #334155;
+    font-family: inherit;
+}
+
+.navbar-action-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #10b981;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: opacity 0.2s;
+}
+
+.icon-btn:hover {
+    opacity: 0.8;
+}
+
+.profile-avatar-btn {
+    background-color: #ccfbf1;
+    color: #0d9488;
+    padding: 6px;
+}
+
+.navbar-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-link-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    padding: 4px 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.nav-link-btn:hover {
+    color: #8b5cf6;
+}
+
+.nav-link-btn.active {
+    color: #8b5cf6;
+    font-weight: 700;
+}
+
+.nav-link-icon {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
+
+
+/* Home */
+.home-container {
+    width: 100%;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 28px 24px;
+}
+
+.welcome-banner h2 {
+    font-size: 14.5px;
+    font-weight: 400;
+    color: #2d3748;
+    margin-bottom: 20px;
+}
+
+.welcome-banner strong {
+    font-weight: 600;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dashboard-card {
+    padding: 20px 24px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: left;
+}
+
+.card-purple {
+    background-color: #f0f5ff;
+}
+
+.card-yellow {
+    background-color: #fefce8;
+}
+
+.card-orange {
+    background-color: #fff7ed;
+}
+
+.card-teal {
+    background-color: #f0fdf4;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.card-icon {
+    font-size: 18px;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dashboard-card p {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: #4a5568;
+}
+
+.shadow-box {
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    min-height: 240px;
+}
+
+.tab-headers {
+    display: flex;
+    gap: 20px;
+    padding: 14px 20px 0 20px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #a0aec0;
+    padding-bottom: 10px;
+    cursor: pointer;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: #2d3748;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #2d3748;
+}
+
+.tab-content {
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty-state {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.empty-icon {
+    font-size: 36px;
+    color: #a0aec0;
+    margin-bottom: 12px;
+}
+
+.empty-title {
+    font-size: 14px;
+    color: #718096;
+    margin-bottom: 4px;
+}
+
+.empty-subtitle {
+    font-size: 13px;
+    color: #a0aec0;
+}
+
+/* Admit Card Page */
+.admit-card-container {
+    width: 100%;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+}
+
+.sidebar-section {
+    width: 320px;
+    flex-shrink: 0;
+}
+
+.sidebar-card {
+    background-color: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    padding: 24px;
+    height: 100%;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.sidebar-icon {
+    font-size: 18px;
+    color: #8b5cf6;
+}
+
+.sidebar-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8b5cf6;
+}
+
+.exam-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.exam-card {
+    background-color: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    padding: 16px 18px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.exam-card:hover {
+    border-color: #ddd6fe;
+}
+
+.exam-card.active {
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.exam-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 6px;
+}
+
+.exam-detail {
+    font-size: 12.5px;
+    color: #718096;
+    margin-bottom: 3px;
+}
+
+.main-admit-card-panel {
+    flex-grow: 1;
+    background-color: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    padding: 28px 32px;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8b5cf6;
+    margin-bottom: 24px;
+}
+
+.admit-card-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 12px;
+    column-gap: 32px;
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.detail-item .label {
+    color: #4a5568;
+    width: 110px;
+    flex-shrink: 0;
+}
+
+.detail-item .value {
+    color: #1a202c;
+    font-weight: 600;
+}
+
+.qr-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 12px 0 24px 0;
+    width: 100%;
+}
+
+.admit-card-notes-box {
+    background-color: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 6px;
+    padding: 12px 18px;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.admit-card-notes {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.admit-card-notes li {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.admit-card-placeholder {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 40px 0;
+}
+
+.clock-icon-wrapper {
+    background-color: #f1f5f9;
+    border-radius: 50%;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.large-clock-icon {
+    font-size: 36px;
+    color: #94a3b8;
+}
+
+.placeholder-text {
+    font-size: 16px;
+    color: #94a3b8;
+    text-align: center;
+}
