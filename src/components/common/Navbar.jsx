@@ -26,9 +26,16 @@ const Navbar = ({ activeTab, setActiveTab }) => {
     { name: 'Admit Card', icon: <FiCreditCard /> },
   ]
 
+  const handleNavClick = (itemName) => {
+    if (itemName === 'Home' || itemName === 'Admit Card') {
+      setActiveTab(itemName)
+    } else {
+      alert(`This is just a demo of the MST section (${itemName}).`)
+    }
+  }
+
   return (
     <header className="navbar-container">
-      {/* Render Logo component on the left */}
       <div className="navbar-logo-section">
         <Logo />
       </div>
@@ -48,7 +55,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
             <button
               key={item.name}
               className={`nav-link-btn ${activeTab === item.name ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.name)}
+              onClick={() => handleNavClick(item.name)}
             >
               <span className="nav-link-icon">{item.icon}</span>
               <span>{item.name}</span>

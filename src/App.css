@@ -995,3 +995,38 @@ button {
     align-items: center;
     font-size: 16px;
 }
+
+.nav-link-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+
+.nav-link-btn:hover {
+    color: #8b5cf6;
+    background-color: #f3e8ff;
+}
+
+
+.nav-link-btn.active {
+    color: #8b5cf6;
+    font-weight: 700;
+    background-color: #f3e8ff;
+}
+
+.nav-link-icon {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
