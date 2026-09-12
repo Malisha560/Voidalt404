@@ -1,17 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import {
-  FiBell,
-  FiBook,
-  FiCalendar,
-  FiCreditCard,
-  FiEdit,
-  FiGrid,
-  FiMessageSquare,
-  FiPenTool,
-  FiSearch,
-  FiUser,
-  FiUserCheck,
-} from 'react-icons/fi'
+import { FiBell, FiBook, FiCalendar, FiCreditCard, FiEdit, FiGrid, FiMessageSquare, FiPenTool, FiSearch, FiUser, FiUserCheck } from 'react-icons/fi'
 import Logo from './Logo'
 
 const navItemsByRole = {

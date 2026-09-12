@@ -282,7 +282,7 @@ button {
     font-weight: 600;
 }
 
-.portal-workspace > .portal-main {
+.portal-workspace>.portal-main {
     max-width: 1180px;
 }
 
@@ -1134,4 +1134,149 @@ button {
         min-height: 380px;
         padding: 25px 18px;
     }
+}
+
+.navbar-container {
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    padding: 12px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.navbar-logo-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 20px;
+}
+
+.navbar-logo {
+    height: 64px;
+    width: auto;
+    object-fit: contain;
+}
+
+.navbar-main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.navbar-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.college-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #334155;
+    font-family: inherit;
+}
+
+.navbar-action-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #10b981;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: opacity 0.2s;
+}
+
+.icon-btn:hover {
+    opacity: 0.8;
+}
+
+.profile-avatar-btn {
+    background-color: #ccfbf1;
+    color: #0d9488;
+    padding: 6px;
+}
+
+.navbar-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-link-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    padding: 4px 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.nav-link-btn:hover {
+    color: #8b5cf6;
+}
+
+.nav-link-btn.active {
+    color: #8b5cf6;
+    font-weight: 700;
+}
+
+.nav-link-icon {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
+
+.nav-link-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+
+.nav-link-btn:hover {
+    color: #8b5cf6;
+    background-color: #f3e8ff;
+}
+
+
+.nav-link-btn.active {
+    color: #8b5cf6;
+    font-weight: 700;
+    background-color: #f3e8ff;
+}
+
+.nav-link-icon {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
 }
