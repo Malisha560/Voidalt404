@@ -4,11 +4,11 @@ import { QRCodeCanvas } from 'qrcode.react'
 import { fetchAdmitCards, fetchExamAdmitCard, fetchExamQr } from '../../services/api'
 
 function FeeBlockedMessage() {
-  return <section className="blocked-state"><div className="state-icon blocked">⌑</div><p className="eyebrow">ADMIT CARD ACCESS</p><h1>Admit Card Unavailable</h1><p className="state-copy">Your examination fee has not been cleared. Please contact the Finance or Fee Support team to clear your examination fee before accessing your admit card.</p></section>
+  return <section className="blocked-state"><p className="eyebrow">ADMIT CARD ACCESS</p><h1>Admit Card Unavailable</h1><p className="state-copy">Your examination fee has not been cleared. Please contact the Finance or Fee Support team to clear your examination fee before accessing your admit card.</p></section>
 }
 
 function ExamList({ exams, subjects, selectedSubject, selectedId, onSubjectChange, onSelect }) {
-  return <aside className="exam-list-panel"><div className="section-label">UPCOMING EXAMINATIONS</div><h2>Choose an examination</h2><label className="subject-select"><span>Subject</span><select value={selectedSubject} onChange={(event) => onSubjectChange(event.target.value)} aria-label="Select subject">{subjects.map((subject) => <option value={subject} key={subject}>{subject}</option>)}</select></label><div className="exam-list">{exams.map((exam) => <button className={`exam-list-item ${selectedId === exam.id ? 'selected' : ''}`} key={exam.id} onClick={() => onSelect(exam.id)}><span className="exam-dot" /><span><strong>{exam.subject}</strong><small>{exam.dateLabel}</small></span><span className="arrow">›</span></button>)}</div></aside>
+  return <aside className="exam-list-panel"><h2><span className="exam-heading-icon">▣</span>Upcoming Exams</h2><label className="subject-select"><span>Subject</span><select value={selectedSubject} onChange={(event) => onSubjectChange(event.target.value)} aria-label="Select subject">{subjects.map((subject) => <option value={subject} key={subject}>{subject}</option>)}</select></label><div className="exam-list">{exams.map((exam) => <button className={`exam-list-item ${selectedId === exam.id ? 'selected' : ''}`} key={exam.id} onClick={() => onSelect(exam.id)}><span><strong>{exam.examName} - {exam.subject}</strong><small>{exam.dateLabel} · {exam.startLabel} - {exam.endLabel}</small><small>{exam.building} - {exam.room}</small></span></button>)}</div></aside>
 }
 
 function QRCodeCard({ examId, studentId }) {
@@ -17,11 +17,11 @@ function QRCodeCard({ examId, studentId }) {
   useEffect(() => { let active = true; fetchExamQr(examId, studentId).then((data) => { if (active) setQr(data) }).catch(() => { if (active) setQr({ available: false, availableAt: 'Unavailable' }) }).finally(() => active && setLoading(false)); return () => { active = false } }, [examId, studentId])
   if (loading) return <div className="qr-card"><div className="qr-loading">Checking QR availability...</div></div>
   if (!qr?.available) return <div className="qr-card qr-locked"><div className="qr-status-icon">⌑</div><strong>QR CODE LOCKED</strong><p>Your examination QR code is not available yet.</p><small>QR code will be available at<br /><b>{qr?.availableAt || '8:00 AM'}</b></small><span>The QR code can be accessed 2 hours before the examination begins.</span></div>
-  return <div className="qr-card qr-active"><div className="qr-status-icon">✓</div><strong>QR CODE ACTIVE</strong><QRCodeCanvas value={qr.token} size={144} level="M" includeMargin /><p>Present this QR code to the invigilator at the examination entrance.</p></div>
+  return <div className="qr-card qr-active"><QRCodeCanvas value={qr.token} size={330} level="M" includeMargin /><ul><li>Candidate must show this QR for entry into the exam hall</li><li>This QR is only valid for its respective examination</li></ul></div>
 }
 
 function ExamDetails({ exam, studentId }) {
-  return <section className="admit-card"><div className="card-heading"><div><p className="eyebrow">DIGITAL ADMIT CARD</p><h1>{exam.subject}</h1></div><span className="fee-badge">✓ FEE CLEARED</span></div><div className="info-section"><h3>Student Information</h3><div className="info-grid"><div><small>Name</small><b>{exam.student.name}</b></div><div><small>Student ID</small><b>{exam.student.studentId}</b></div><div><small>Course</small><b>{exam.student.course}</b></div></div></div><div className="info-section"><h3>Examination Details</h3><div className="info-grid exam-info"><div><small>Subject</small><b>{exam.subject}</b></div><div><small>Exam Date</small><b>{exam.dateLabel}</b></div><div><small>Time</small><b>{exam.startLabel} - {exam.endLabel}</b></div><div><small>Building</small><b>{exam.building}</b></div><div><small>Room</small><b>{exam.room}</b></div><div><small>Seat Number</small><b>{exam.seat}</b></div></div></div><QRCodeCard key={exam.id} examId={exam.id} studentId={studentId} /></section>
+  return <section className="admit-card"><h2>Your Admit Card</h2><div className="admit-summary"><div><span>Name:</span><b>{exam.student.name}</b></div><div><span>Venue:</span><b>{exam.building} - {exam.room}</b></div><div><span>Student ID:</span><b>{exam.student.studentId}</b></div><div><span>Seat No.:</span><b>{exam.seat}</b></div></div><QRCodeCard key={exam.id} examId={exam.id} studentId={studentId} /></section>
 }
 
 function AdmitCard() {

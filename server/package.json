@@ -7,7 +7,10 @@
   "start": "node app.js",
   "dev": "nodemon app.js",
   "create-user": "node scripts/create-user.js",
-  "seed-students": "node scripts/seed-students.js"
+  "seed-students": "node scripts/seed-students.js",
+  "seed-exams": "node scripts/seed-exams.js"
+  ,"seed-programme-exams": "node scripts/seed-programme-exams.js",
+  "repair-qr-tokens": "node scripts/repair-qr-tokens.js"
 },
   "keywords": [],
   "author": "",

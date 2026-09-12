@@ -118,6 +118,22 @@ button {
     border-bottom: 2px solid var(--purple);
 }
 
+.nav-item.locked {
+    color: #b6b3ba;
+    cursor: pointer;
+}
+
+.nav-item.locked:hover {
+    color: #8e8994;
+}
+
+.nav-lock-label {
+    margin-left: 5px;
+    color: #c2bec5;
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
 .nav-icon {
     margin-right: 7px;
     color: inherit;
@@ -403,8 +419,8 @@ button {
 
 .admit-layout {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 22px;
+    grid-template-columns: minmax(330px, 0.72fr) minmax(520px, 1.28fr);
+    gap: 24px;
     align-items: start;
 }
 
@@ -440,10 +456,18 @@ button {
 }
 
 .exam-list-panel h2 {
-    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 17px;
     font-weight: 500;
-    margin: 0 0 19px;
-    color: #514d54;
+    margin: 0 0 22px;
+    color: #9649ed;
+}
+
+.exam-heading-icon {
+    color: #974bf0;
+    font-size: 19px;
 }
 
 .exam-list {
@@ -453,32 +477,18 @@ button {
 
 .exam-list-item {
     width: 100%;
-    border: 1px solid transparent;
-    background: #fcfbfd;
-    display: grid;
-    grid-template-columns: 10px 1fr auto;
+    border: 1px solid #eee9e4;
+    background: #fffdfa;
+    display: block;
     text-align: left;
-    gap: 10px;
-    align-items: center;
-    padding: 14px 11px;
+    padding: 20px 15px;
     border-radius: 7px;
     color: #57525a;
 }
 
 .exam-list-item.selected {
-    border-color: #d9c7f5;
-    background: #faf6ff;
-}
-
-.exam-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #c9c3cc;
-}
-
-.selected .exam-dot {
-    background: var(--purple);
+    border-color: #d9e3f1;
+    background: #edf3fb;
 }
 
 .exam-list-item strong,
@@ -494,7 +504,11 @@ button {
 .exam-list-item small {
     font-size: 11px;
     color: #9d99a0;
-    margin-top: 4px;
+    margin-top: 10px;
+}
+
+.exam-list-item small + small {
+    margin-top: 9px;
 }
 
 .arrow {
@@ -503,7 +517,39 @@ button {
 }
 
 .admit-card {
-    padding: 28px 30px;
+    padding: 26px 24px 25px;
+    background: #fffdfa;
+}
+
+.admit-card > h2 {
+    margin: 0 0 24px;
+    color: #9649ed;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.admit-summary {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 14px 42px;
+    padding-bottom: 19px;
+}
+
+.admit-summary div {
+    display: grid;
+    grid-template-columns: 122px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 14px;
+}
+
+.admit-summary span {
+    color: #242229;
+}
+
+.admit-summary b {
+    color: #25232a;
+    font-weight: 400;
 }
 
 .card-heading {
@@ -561,10 +607,10 @@ button {
 }
 
 .qr-card {
-    margin-top: 22px;
-    border: 1px dashed #ded8e5;
-    background: #fdfcff;
-    min-height: 210px;
+    margin-top: 10px;
+    border: 0;
+    background: transparent;
+    min-height: 430px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -584,6 +630,26 @@ button {
     margin: 0;
     font-size: 12px;
     max-width: 280px;
+}
+
+.qr-active {
+    justify-content: flex-start;
+    gap: 18px;
+}
+
+.qr-active canvas {
+    width: min(330px, 75%) !important;
+    height: auto !important;
+}
+
+.qr-active ul {
+    align-self: flex-start;
+    margin: 8px 0 0 16%;
+    padding-left: 17px;
+    color: #242229;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: left;
 }
 
 .qr-card small {
