@@ -1,0 +1,135 @@
+.admin-students-page {
+  min-height: calc(100vh - 112px);
+  padding: 40px 42px;
+  background: #fafafa;
+  color: #36363a;
+}
+
+.student-filters {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 39px;
+}
+
+.student-filters select,
+.student-search {
+  height: 34px;
+  border: 1px solid #e5e5e7;
+  border-radius: 8px;
+  background: #fff;
+  color: #55555a;
+  font-size: 11px;
+}
+
+.student-filters select {
+  width: 202px;
+  padding: 0 25px;
+}
+
+.student-search {
+  display: flex;
+  align-items: center;
+  width: 404px;
+  margin-left: auto;
+  padding: 0 14px;
+}
+
+.student-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #36363a;
+  font-size: 11px;
+}
+
+.student-search input::placeholder { color: #55555a; }
+.student-search span { color: #8c8c90; font-size: 22px; line-height: 1; }
+
+.student-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e4e4e5;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 11px;
+}
+
+.student-table th,
+.student-table td {
+  height: 44px;
+  padding: 0 14px;
+  border-right: 1px solid #e4e4e5;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.student-table th {
+  height: 45px;
+  color: #3f3f43;
+  font-weight: 500;
+  text-align: center;
+}
+
+.student-table th:last-child,
+.student-table td:last-child { border-right: 0; }
+.student-table th:nth-child(1) { width: 10%; }
+.student-table th:nth-child(2) { width: 23%; }
+.student-table th:nth-child(3) { width: 27%; }
+.student-table th:nth-child(4) { width: 22%; }
+.student-table th:nth-child(5) { width: 18%; }
+.student-table td:first-child { text-align: center; }
+
+.fee-status-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 80px;
+  padding: 5px 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  color: #66666b;
+  font-size: 10px;
+}
+
+.fee-status-select select {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.fee-status-select > span { pointer-events: none; color: #c4c4c7; font-size: 14px; }
+.fee-status-select.clear { color: #3f3f43; }
+.fee-status-select.unclear { color: #6b6060; }
+.fee-status-select.saving { opacity: .55; }
+
+.table-message {
+  height: 160px !important;
+  color: #a1a1a6;
+  text-align: center !important;
+}
+
+.admin-table-error {
+  margin: -20px 0 20px;
+  color: #c35c5c;
+  font-size: 12px;
+}
+
+@media (max-width: 800px) {
+  .admin-students-page { padding: 24px 18px; }
+  .student-filters { flex-wrap: wrap; gap: 12px; }
+  .student-filters select { width: calc(50% - 6px); }
+  .student-search { width: 100%; margin-left: 0; }
+  .student-table { min-width: 760px; }
+}
