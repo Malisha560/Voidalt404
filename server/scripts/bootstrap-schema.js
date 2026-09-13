@@ -22,6 +22,7 @@ const statements = [
   `CREATE TABLE IF NOT EXISTS fee_status (
     student_id INT PRIMARY KEY,
     status ENUM('CLEAR', 'UNCLEAR') NOT NULL DEFAULT 'UNCLEAR',
+    updated_by INT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   )`,
   `CREATE TABLE IF NOT EXISTS exams (
@@ -84,6 +85,7 @@ async function bootstrapSchema() {
   try {
     await connection.beginTransaction()
     for (const statement of statements) await connection.query(statement)
+    try { await connection.query('ALTER TABLE fee_status ADD COLUMN updated_by INT NULL AFTER status') } catch (error) { if (error.code !== 'ER_DUP_FIELDNAME') throw error }
     try { await connection.query('ALTER TABLE exams ADD COLUMN programme VARCHAR(150) NOT NULL DEFAULT \'\' AFTER subject') } catch (error) { if (error.code !== 'ER_DUP_FIELDNAME') throw error }
     await connection.commit()
     console.log('Database schema is ready.')

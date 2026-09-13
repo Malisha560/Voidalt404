@@ -11,6 +11,8 @@ export const updateStudentFeeStatus = (studentId, status) => {
   const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
   return api.patch(`/admin/students/${studentId}/fee-status`, { status }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)
 }
+export const importFeeStatuses = (rows) => api.post('/admin/fee-status/import', { rows }, { headers: staffHeaders() }).then(({ data }) => data)
+export const exportFeeStatuses = () => api.get('/admin/fee-status/export', { headers: staffHeaders(), responseType: 'blob' }).then(({ data }) => data)
 export const updateStudentProfileImage = (studentId, profileImage) => {
   const session = JSON.parse(localStorage.getItem('auth_session') || 'null')
   return api.patch(`/admin/students/${studentId}/profile-image`, { profileImage }, { headers: { Authorization: `Bearer ${session?.token || ''}` } }).then(({ data }) => data)

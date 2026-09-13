@@ -104,14 +104,89 @@ app.patch("/api/admin/students/:id/fee-status", authenticateToken, requireRole("
     if (!studentRecord) return res.status(404).json({ message: "Student not found" });
 
     await pool.execute(
-      `INSERT INTO fee_status (student_id, status) VALUES (?, ?)
-       ON DUPLICATE KEY UPDATE status = VALUES(status)`,
-      [studentRecord.id, status],
+      `INSERT INTO fee_status (student_id, status, updated_by) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE status = VALUES(status), updated_by = VALUES(updated_by)`,
+      [studentRecord.id, status, req.user.sub],
     );
     return res.json({ studentId: studentRecord.id, feeStatus: status });
   } catch (error) {
     console.error("Unable to update student fee status:", error);
     return res.status(500).json({ message: "Unable to update fee status" });
+  }
+});
+
+app.get("/api/admin/fee-status/export", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const [students] = await pool.query(`
+      SELECT s.student_id AS studentId, s.name, COALESCE(f.status, 'UNCLEAR') AS feeStatus
+      FROM students s
+      LEFT JOIN fee_status f ON f.student_id = s.id
+      ORDER BY s.student_id ASC
+    `);
+    const csv = ["student_id,student_name,fee_status", ...students.map((student) => [student.studentId, student.name, student.feeStatus].map((value) => `"${String(value ?? '').replaceAll('"', '""')}"`).join(","))].join("\n");
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="fee-status.csv"');
+    return res.send(csv);
+  } catch (error) {
+    console.error("Unable to export fee statuses:", error);
+    return res.status(500).json({ message: "Unable to export fee statuses" });
+  }
+});
+
+app.post("/api/admin/fee-status/import", authenticateToken, requireRole("ADMIN"), async (req, res) => {
+  const rows = Array.isArray(req.body.rows) ? req.body.rows : [];
+  const seenStudentIds = new Set();
+  const invalidRows = [];
+  const normalizedRows = rows.map((row, index) => {
+    const studentCode = String(row?.studentId || "").trim();
+    const status = String(row?.feeStatus || "").trim();
+    const reasons = [];
+    if (!studentCode) reasons.push("Student ID is required");
+    if (!["CLEAR", "UNCLEAR"].includes(status)) reasons.push("Fee status must be CLEAR or UNCLEAR");
+    if (studentCode && seenStudentIds.has(studentCode)) reasons.push("Duplicate student ID in upload");
+    if (studentCode) seenStudentIds.add(studentCode);
+    return { rowNumber: Number(row?.rowNumber) || index + 2, studentId: studentCode, feeStatus: status, reasons };
+  });
+
+  if (!normalizedRows.length) return res.status(400).json({ message: "The import file contains no records", summary: { processed: 0, updated: 0, invalid: 0, notFound: 0 } });
+
+  try {
+    const studentIds = normalizedRows.filter((row) => row.studentId).map((row) => row.studentId);
+    const [students] = studentIds.length ? await pool.query("SELECT id, student_id AS studentId, name FROM students WHERE student_id IN (?)", [studentIds]) : [[]];
+    const studentMap = new Map(students.map((student) => [student.studentId, student]));
+    normalizedRows.forEach((row) => {
+      const student = studentMap.get(row.studentId);
+      if (!student && row.studentId) row.reasons.push("Student ID was not found");
+      row.student = student || null;
+      if (row.reasons.length) invalidRows.push({ rowNumber: row.rowNumber, studentId: row.studentId, studentName: student?.name || "Not found", feeStatus: row.feeStatus, reasons: row.reasons });
+    });
+
+    const validRows = normalizedRows.filter((row) => row.reasons.length === 0);
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      for (const row of validRows) {
+          await connection.execute(
+            `INSERT INTO fee_status (student_id, status, updated_by) VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE status = VALUES(status), updated_by = VALUES(updated_by)`,
+            [row.student.id, row.feeStatus, req.user.sub],
+          );
+        }
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+
+    return res.json({
+      summary: { processed: normalizedRows.length, updated: validRows.length, invalid: invalidRows.length, notFound: invalidRows.filter((row) => row.reasons.includes("Student ID was not found")).length },
+      invalidRows,
+    });
+  } catch (error) {
+    console.error("Unable to import fee statuses:", error);
+    return res.status(500).json({ message: "Unable to import fee statuses" });
   }
 });
 
